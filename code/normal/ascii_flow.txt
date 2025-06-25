@@ -1,0 +1,22 @@
+CLIENT                                 SERVER
+------                                 ------
+
+main() ----------------------------->  main()
+  └─ http.Post("/login")  ---------->  r.POST("/login", LoginHandler)
+                                         └─ LoginHandler()
+                                             └─ c.BindJSON(&creds)
+                                             └─ Validate creds
+                                             └─ Generate JWT token
+                                             └─ c.JSON({token})
+  <-------------------------------    <-- Response with token
+
+main() ----------------------------->  main()
+  └─ http.NewRequest("GET", "/home") ->  r.Group("/home").Use(JWTMiddleware()).GET("", HomeHandler)
+                                            └─ JWTMiddleware()
+                                                └─ Get "Authorization" header
+                                                └─ jwt.ParseWithClaims()
+                                                └─ c.Set("username")
+                                            └─ HomeHandler()
+                                                └─ c.MustGet("username")
+                                                └─ Respond "Welcome <username>"
+  <-------------------------------    <-- Response: Welcome admin
