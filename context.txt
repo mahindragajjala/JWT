@@ -1,0 +1,156 @@
+JWT-BASED AUTH MIDDILEWARE 
+
+In production:
+Use JWT tokens, not plain strings.
+Use Bearer <token> format.
+Validate tokens using libraries like github.com/golang-jwt/jwt.
+
+                                        ✅ What is JWT-Based Auth Middleware?
+
+JWT (JSON Web Token) based authentication is a stateless way to secure endpoints. 
+In this setup:
+              The client sends credentials (e.g., username & password).
+              The server generates a JWT and sends it back.
+              For each request, the client sends the JWT in the Authorization header.
+              The middleware verifies the JWT before allowing access to protected routes.
+
+
+
+
+  
+            UNDERSTAND IN DETAIL OF REAL TIME EXAMPLE TO UNDERSTAND THE FLOW OF THE MIDDLEWARE:
+
+                        🧑 User wants to access /dashboard page (protected route)
+
+🟦 Step 1: Client Logs In
+                          ▶ Request:
+                                    Client sends a POST request to /login with credentials.
+                                    POST /login
+                                    Content-Type: application/json
+                                              
+                                    {
+                                      "username": "mahindra",
+                                      "password": "password123"
+                                    }
+                          ▶ Server:
+                                    Verifies username and password.
+                                    If valid, creates JWT with user info as payload:
+                                    
+                                    {
+                                      "username": "mahindra",
+                                      "role": "admin",
+                                      "exp": 1717610000  // expiry timestamp
+                                    }
+                                    Signs the token with secret key (my_secret_key).
+                          
+                          Responds with the JWT.
+                          
+                          ▶ Response:
+                                      HTTP 200 OK
+                                      Content-Type: application/json
+                                      
+                                      {
+                                        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6..."
+                                      }
+
+
+  
+🟦 Step 2: 
+          Client Stores the Token
+          Client stores the JWT (e.g., in browser's localStorage or mobile memory).
+          For future requests to protected routes, the client will include this token.
+
+
+  
+🟦 Step 3: 
+          Client Requests Protected Route /dashboard
+          ▶ Request:
+                  Client sends GET request to /dashboard with the token:
+                  GET /dashboard
+                  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6...
+
+
+  
+🟨 Step 4:
+                                  Middleware Intercepts the Request
+                                  (This is where JWT Middleware comes in)
+                        Gin server receives request to /dashboard.
+                        Middleware (registered on route group) runs before the actual controller.
+                                            Middleware checks the Authorization header:
+                                            Valid format? (Bearer <token>)
+                                            Parses the token.
+                                            Verifies signature using secret key.
+                                            Checks expiry.
+                        
+                        If all checks pass:
+                                          Middleware sets user info in context: c.Set("user", claims["username"])
+                                          Calls c.Next() to pass request to next handler (controller).
+                        
+                        If invalid:
+                        Middleware aborts request and sends 401 Unauthorized.
+                        
+
+  
+🟦 Step 5: 
+                      Controller Executes
+                      Now that token is valid and user info is extracted, the actual route handler runs:
+                      
+                      func Dashboard(c *gin.Context) {
+                          user := c.MustGet("user").(string)
+                          c.JSON(http.StatusOK, gin.H{
+                              "message": "Welcome to your dashboard, " + user,
+                          })
+                      }
+                      ▶ Response:
+                      {
+                        "message": "Welcome to your dashboard, mahindra"
+                      }
+
+
+🟥 Step 6:
+                If Token is Invalid or Expired
+                ▶ Middleware Detects:
+                                  Expired token
+                                  Wrong signature
+                                  Missing or malformed header
+              
+              ▶ Middleware Response:
+                                  HTTP 401 Unauthorized
+                                  Content-Type: application/json
+                                  
+                                  {
+                                    "error": "Invalid or expired token"
+                                  }
+
+
+
+
+  CALL FLOW 
+                          [Client] --> POST /login ------------------> [Server]
+                                            credentials               ↳ validate user
+                                                                      ↳ generate JWT
+                                                                      ↳ return JWT
+                          
+                          [Client] <-- 200 OK + token ---------------
+                          
+                          [Client] --> GET /dashboard ---------------> [Server]
+                                         Authorization: Bearer token ↳ Middleware
+                                                                      ↳ verify token
+                                                                      ↳ if valid: pass to handler
+                                                                             ↳ Controller returns data
+                                                                      ↳ if invalid: return 401
+                          
+                          [Client] <-- 200 OK or 401 Unauthorized <---
+
+
+
+
+                                            REAL TIME APPLICATIONS 
+  Mobile App: 
+                User logs into banking app 
+              → token is stored securely 
+              → reused for each API call (e.g., check balance, transfer funds).
+  Web App: 
+              Admin logs into dashboard 
+            → JWT stored in browser 
+            → sent with every route access.
