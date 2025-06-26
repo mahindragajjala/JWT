@@ -1,0 +1,417 @@
+A JWT is made of 3 parts, separated by . (dot):
+                                <Header>.<Payload>.<Signature>
+
+
+
+Header :
+                  {
+                    "alg": "HS256",      // Algorithm used to sign the token
+                    "typ": "JWT"         // Type of the token
+                  }
+                  
+        
+        
+                Description of keys :
+                           Key    Meaning                                                   
+                           `alg`  Algorithm used to sign the token (e.g., `HS256`, `RS256`) 
+                           `typ`  Type of the token; always `JWT`                           
+        
+        
+                🔧 Common alg values:
+                 Algorithm  Full Name                      Description                           
+                 `HS256`    HMAC using SHA-256             Shared secret-based (symmetric)       
+                 `RS256`    RSA using SHA-256              Public/private key-based (asymmetric) 
+                 `ES256`    ECDSA using P-256 and SHA-256  Elliptic curve version                
+                 `none`     No signature                   **Not recommended** (insecure)        
+        
+                🔍 Why the Header is Important:
+                          It tells the server what algorithm to use to verify the signature
+                          Prevents misuse of signature method
+                          Supports extensibility (you can define kid, custom headers, etc.)
+        
+                📝 Optional Headers
+                You can include custom or optional headers too:
+                Key	Description
+                          kid	Key ID – useful when there are multiple signing keys
+                          cty	Content type – for nested JWTs or complex content
+                          x5t	X.509 certificate SHA-1 thumbprint
+        
+        
+        
+        
+        where the algorithm is used in the jwt?
+        
+        ✅ 1. During Signing (Token Creation — done by the server):
+              When the server creates a JWT, it needs to sign it to prevent tampering.
+              
+              It takes:
+              The Base64Url-encoded header
+              The Base64Url-encoded payload
+              A secret key (for HS256) or private key (for RS256)
+              Then it applies the algorithm (HS256, RS256, etc.) to generate the signature.
+              Example Signing Process (for HS256):
+              signature = HMAC_SHA256(
+                base64UrlEncode(header) + "." + base64UrlEncode(payload),
+                secretKey
+              )
+              The final JWT looks like:
+                      <encoded header>.<encoded payload>.<signature>
+        ✅ 2. During Verification (When the client sends the token back — done by the server):
+              When the client sends the JWT back (e.g., in an Authorization header), the server reads the alg from the JWT header.
+              The server:
+              Recalculates the signature using the algorithm mentioned (alg) and the shared secret/private key
+              Compares it with the received signature
+              If the signatures match ➝ the token is valid and trusted
+        
+        
+
+
+Payload :
+                The Payload is the part of a JWT that contains the claims — 
+                meaning information about the user or token.
+        
+                This data is Base64URL-encoded and not encrypted, so anyone can 
+                read it if they have the token.
+        
+        structure :
+                A typical JWT payload looks like this (before encoding):
+                {
+                  "sub": "1234567890",
+                  "name": "Mahindra",
+                  "role": "admin",
+                  "iat": 1719393000,
+                  "exp": 1719396600
+                }
+              After encoding (Base64URL), it becomes a string like:
+            eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik1haGluZHJhIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzE5MzkzMDAwLCJleHAiOjE3MTkzOTY2MDB9
+        
+        
+        TYPE OS THE CLIAMS IN THE JWT 
+        
+        
+        1. Registered Claims (Standard keys)
+                    Used for controlling token validation:
+                    
+                     Claim  Meaning                                       
+                     `iss`  Issuer – who issued the token                 
+                     `sub`  Subject – the user or entity ID               
+                     `aud`  Audience – who the token is intended for      
+                     `exp`  Expiration time (timestamp in seconds)        
+                     `nbf`  Not Before – token not valid before this time 
+                     `iat`  Issued At – token creation time               
+                     `jti`  JWT ID – unique ID for the token   
+                    
+                    ex:
+                        {
+                          "sub": "1234567890",
+                          "iat": 1719393000,
+                          "exp": 1719396600
+                        }
+        
+        
+        
+        
+        
+        
+        2.Public claims
+                    Custom claims shared across different systems.
+                                    {
+                                      "email": "user@example.com"
+                                    }
+                    ⚠️ Avoid name conflicts — define them in an IANA registry or namespace them.
+        
+        
+        
+        
+        
+        
+        3. Private Claims
+                    Custom claims between your client and server (not standardized).
+                                    {
+                                      "role": "admin",
+                                      "permissions": ["read", "write", "delete"]
+                                    }
+        
+        Key Points About Payload
+                   Feature            Description                                  
+                   🧾 Contains        Claims (user info, roles, token metadata)    
+                   🔓 Visibility      Visible to anyone (not encrypted)            
+                   🧪 Used for        Authorization decisions, user identification 
+                   ❌ Not secure       Never put passwords or sensitive data here!  
+                   🕓 Expiry control  Use `exp`, `iat`, `nbf` to manage validity   
+        
+        ⚙️ How is Payload Used?
+        Server signs it with the header + secret → creates the token.
+        Client receives token and stores it (e.g., in localStorage).
+        Client sends token in Authorization: Bearer <JWT> on future requests.
+        Server decodes the payload, extracts role, sub, etc., and:
+                      Verifies exp (hasn't expired)
+                      Checks role for access
+                      Identifies user via sub
+        
+        
+        
+        
+        how to create the jwt payload in the golang?
+              import the package
+              import "github.com/golang-jwt/jwt/v5"
+        
+        
+        
+        
+        Define the Payload (Claims)
+                type MyCustomClaims struct {
+                    Username string `json:"username"`
+                    Role     string `json:"role"`
+                    jwt.RegisteredClaims
+                }
+                        Username and Role are custom claims.
+                        jwt.RegisteredClaims includes:
+                                Issuer (iss)
+                                Subject (sub)
+                                ExpiresAt (exp)
+                                IssuedAt (iat)
+                                NotBefore (nbf)
+        
+        Create the Payload and Sign It
+                        import (
+                            "time"
+                            "github.com/golang-jwt/jwt/v5"
+                        )
+                        
+                        var jwtKey = []byte("my_secret_key") // secret key used for HMAC
+                        
+                        func GenerateJWT() (string, error) {
+                            claims := MyCustomClaims{
+                                Username: "mahindra",
+                                Role:     "admin",
+                                RegisteredClaims: jwt.RegisteredClaims{
+                                    ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
+                                    IssuedAt:  jwt.NewNumericDate(time.Now()),
+                                    NotBefore: jwt.NewNumericDate(time.Now()),
+                                    Issuer:    "my-app",
+                                    Subject:   "auth-token",
+                                },
+                            }
+                        
+                            token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+                            return token.SignedString(jwtKey)
+                        }
+
+signature:
+          The signature is the third part of a JWT (JSON Web Token). 
+          It ensures the integrity and authenticity of the token.
+
+          <Header>.<Payload>.<Signature>
+          Header = metadata (e.g., algorithm used)
+          Payload = actual claims (e.g., user ID, role)
+          Signature = digital proof that the token is valid and untampered
+
+
+What does "Signature" mean?
+        The signature is a cryptographic hash (like a fingerprint) that is:
+              Signature = HMAC_SHA256(
+                             base64url(Header) + "." + base64url(Payload),
+                             secret_key
+                         )
+        It is created by the server using:
+                The header and payload contents
+                A secret key (which only the server knows)
+                The algorithm specified in the header (e.g., HS256)
+        
+                            package main
+                            
+                            import (
+                            	"encoding/base64"
+                            	"encoding/json"
+                            	"fmt"
+                            	"log"
+                            
+                            	"crypto/hmac"
+                            	"crypto/sha256"
+                            )
+                            
+                            // Define header and payload
+                            type Header struct {
+                            	Alg string `json:"alg"`
+                            	Typ string `json:"typ"`
+                            }
+                            
+                            type Payload struct {
+                            	Username string `json:"username"`
+                            	Role     string `json:"role"`
+                            }
+                            
+                            func base64UrlEncode(data []byte) string {
+                            	return base64.RawURLEncoding.EncodeToString(data)
+                            }
+                            
+                            func main() {
+                            	// Step 1: Create Header
+                            	header := Header{
+                            		Alg: "HS256",
+                            		Typ: "JWT",
+                            	}
+                            	headerJSON, _ := json.Marshal(header)
+                            	headerEncoded := base64UrlEncode(headerJSON)
+                            
+                            	// Step 2: Create Payload
+                            	payload := Payload{
+                            		Username: "mahindra",
+                            		Role:     "admin",
+                            	}
+                            	payloadJSON, _ := json.Marshal(payload)
+                            	payloadEncoded := base64UrlEncode(payloadJSON)
+                            
+                            	// Step 3: Create message
+                            	message := headerEncoded + "." + payloadEncoded
+                            
+                            	// Step 4: Sign using HMAC-SHA256 with secret key
+                            	secret := []byte("my_secret_key")
+                            	h := hmac.New(sha256.New, secret)
+                            	h.Write([]byte(message))
+                            	signature := h.Sum(nil)
+                            	signatureEncoded := base64UrlEncode(signature)
+                            
+                            	// Step 5: Final JWT
+                            	jwt := message + "." + signatureEncoded
+                            	fmt.Println("JWT Token:")
+                            	fmt.Println(jwt)
+                            }
+
+
+FULL CODE: /INTEGRATED THESE THREE PARTS 
+
+
+          // server.go
+          package main
+          
+          import (
+          	"net/http"
+          	"time"
+          
+          	"github.com/gin-gonic/gin"
+          	"github.com/golang-jwt/jwt/v5"
+          )
+          
+          var jwtKey = []byte("my_secret_key")
+          
+          type UserCredentials struct {
+          	Username string `json:"username"`
+          	Password string `json:"password"`
+          }
+          
+          type Claims struct {
+          	Username string `json:"username"`
+          	Role     string `json:"role"`
+          	jwt.RegisteredClaims
+          }
+          
+          func main() {
+          	r := gin.Default()
+          
+          	r.POST("/login", loginHandler)
+          	auth := r.Group("/auth")
+          	auth.Use(AuthMiddleware())
+          	{
+          		auth.GET("/user", userEndpoint)
+          		auth.GET("/admin", AdminOnly(), adminEndpoint)
+          	}
+          
+          	r.Run(":8080")
+          }
+          
+          func loginHandler(c *gin.Context) {
+          	var creds UserCredentials
+          	if err := c.BindJSON(&creds); err != nil {
+          		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+          		return
+          	}
+          
+          	// Hardcoded credentials for demo
+          	if creds.Username != "admin" || creds.Password != "admin123" {
+          		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+          		return
+          	}
+          
+          	// Create JWT token
+          	expirationTime := time.Now().Add(5 * time.Minute)
+          	claims := &Claims{
+          		Username: creds.Username,
+          		Role:     "admin",
+          		RegisteredClaims: jwt.RegisteredClaims{
+          			ExpiresAt: jwt.NewNumericDate(expirationTime),
+          			IssuedAt:  jwt.NewNumericDate(time.Now()),
+          		},
+          	}
+          
+          	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+          	tokenStr, err := token.SignedString(jwtKey)
+          	if err != nil {
+          		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not sign token"})
+          		return
+          	}
+          
+          	c.JSON(http.StatusOK, gin.H{"token": tokenStr})
+          }
+          
+          func AuthMiddleware() gin.HandlerFunc {
+          	return func(c *gin.Context) {
+          		tokenStr := c.GetHeader("Authorization")
+          		if tokenStr == "" {
+          			c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing token"})
+          			c.Abort()
+          			return
+          		}
+          
+          		claims := &Claims{}
+          		token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
+          			return jwtKey, nil
+          		})
+          
+          		if err != nil || !token.Valid {
+          			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+          			c.Abort()
+          			return
+          		}
+          
+          		// Store claims in context
+          		c.Set("username", claims.Username)
+          		c.Set("role", claims.Role)
+          		c.Next()
+          	}
+          }
+          
+          func AdminOnly() gin.HandlerFunc {
+          	return func(c *gin.Context) {
+          		role, exists := c.Get("role")
+          		if !exists || role != "admin" {
+          			c.JSON(http.StatusForbidden, gin.H{"error": "Admins only"})
+          			c.Abort()
+          			return
+          		}
+          		c.Next()
+          	}
+          }
+          
+          func userEndpoint(c *gin.Context) {
+          	username, _ := c.Get("username")
+          	c.JSON(http.StatusOK, gin.H{"message": "Welcome User", "user": username})
+          }
+          
+          func adminEndpoint(c *gin.Context) {
+          	username, _ := c.Get("username")
+          	c.JSON(http.StatusOK, gin.H{"message": "Welcome Admin", "user": username})
+          }
+
+
+
+
+
+
+
+
+
+
+
+
