@@ -1,0 +1,107 @@
+In JWT (JSON Web Token), algorithms are used primarily for:
+Signing (to ensure integrity and authenticity)
+Encryption (optional, for confidentiality - used in JWE)
+
+
+Signing Algorithms (alg in JWT Header)
+          These ensure the token hasn’t been tampered with and 
+          identify who issued it.
+          🔸 a) HMAC (HS) family
+                            HS256 → HMAC + SHA-256
+                            HS384 → HMAC + SHA-384
+                            HS512 → HMAC + SHA-512
+          ✅ Symmetric key – same key is used for signing and verifying.
+          ➡️ Fast and simple but requires both parties to share the secret securely.
+          
+          🔸 b) RSA (RS) family
+                            RS256 → RSA + SHA-256
+                            RS384 → RSA + SHA-384
+                            RS512 → RSA + SHA-512
+          ✅ Asymmetric – uses private key to sign, public key to verify.
+          ➡️ Safer in distributed systems (e.g., public key can be shared openly).
+          
+          🔸 c) ECDSA (ES) family
+                            ES256 → ECDSA + P-256 + SHA-256
+                            ES384 → ECDSA + P-384 + SHA-384
+                            ES512 → ECDSA + P-521 + SHA-512
+          ✅ Asymmetric, based on Elliptic Curve Cryptography
+          ➡️ More compact and efficient than RSA for the same security level.
+          
+          🔸 d) EdDSA
+                            Ed25519
+          ✅ Very fast and secure
+          ➡️ Increasingly popular for modern cryptography needs
+
+
+
+Encryption Algorithms (Used in JWE – JSON Web Encryption)
+        JWTs are usually signed (JWS), but can also be encrypted (JWE).
+        🔸 a) Key Management Algorithms (to encrypt the symmetric key)
+              RSA-OAEP
+              RSA1_5
+              A128KW, A256KW (AES Key Wrap)
+              ECDH-ES (Elliptic Curve Diffie-Hellman)
+              PBES2-HS256+A128KW (password-based encryption)
+        
+        🔸 b) Content Encryption Algorithms (to encrypt the payload)
+              A128CBC-HS256
+              A256CBC-HS512
+              A128GCM
+              A256GCM
+
+
+
+None Algorithm
+    "alg": "none"
+    Means no signature is used
+    ❌ Highly insecure and should never be used in production.
+
+
+ Algorithm  Type        Key Type    Secure?  Notes               
+ HS256      Signing     Symmetric   ✅        Fast, shared secret 
+ RS256      Signing     Asymmetric  ✅✅       Public-private keys 
+ ES256      Signing     Asymmetric  ✅✅✅      Smaller token size  
+ EdDSA      Signing     Asymmetric  ✅✅✅      Modern, efficient   
+ none       None        N/A         ❌        Never use           
+ RSA-OAEP   Encryption  Asymmetric  ✅        Used in JWE         
+ A128GCM    Encryption  Symmetric   ✅        Fast, secure        
+
+
+Algorithms used:
+   * HS256 (HMAC + SHA256)
+   * RS256 (RSA + SHA256)
+      These algorithms—HS256 and RS256—are commonly used in JWT 
+      (JSON Web Token) for signing and verifying tokens. 
+
+
+HS256 (HMAC + SHA256)
+✅ Type:
+Symmetric algorithm – uses the same secret key for both signing 
+                      and verification.
+
+⚙️ Internals:
+              HMAC (Hash-based Message Authentication Code) is 
+              used to ensure integrity and authenticity.
+        It combines a secret key and the message (the token's 
+        header and payload), and then hashes it using SHA-256.
+
+SIGNATURE CREATION:
+HMAC-SHA256(
+   secret_key,
+   base64UrlEncode(header) + "." + base64UrlEncode(payload)
+)
+
+RS256 (RSA + SHA256)
+✅ Type:
+Asymmetric algorithm – uses a private key to sign and a 
+                        public key to verify.
+
+⚙️ Internals:
+Uses RSA encryption to sign the SHA-256 hash of the data.
+Private key signs the JWT; public key is distributed to verify it.
+RSA-SHA256(
+   private_key,
+   base64UrlEncode(header) + "." + base64UrlEncode(payload)
+)
+
+
