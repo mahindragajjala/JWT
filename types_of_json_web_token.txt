@@ -1,0 +1,91 @@
+JWT (JSON Web Token) comes in three main types, each serving a 
+different purpose in secure communication and authentication:
+1. JWS (JSON Web Signature) – Signed JWT
+2. JWE (JSON Web Encryption) – Encrypted JWT
+3. JWKS (JSON Web Key Set) – Not a token, but related
+
+
+
+
+
+🔐 1. JWS (JSON Web Signature) – Signed JWT
+      Purpose: Data integrity + authentication (but not encryption)
+      Structure: Header.Payload.Signature
+      Signature: Created using HMAC, RSA, or ECDSA
+      Use Case: Most common. Used in authentication systems like OAuth, 
+                OpenID, API security.
+
+✅ Advantages:
+  Ensures the token hasn’t been tampered with
+  Easy to validate the source (using secret or public key)
+  🔒 But: Anyone with the token can read the contents (not encrypted)
+
+A Signed JWT has three parts, separated by dots (.):
+                <Header>.<Payload>.<Signature>
+Each part is Base64URL-encoded and then concatenated.
+
+      HMACSHA256(
+        base64UrlEncode(header) + "." + base64UrlEncode(payload),
+        secret_key
+      )
+
+
+
+
+
+
+
+🛡️ 2. JWE (JSON Web Encryption) – Encrypted JWT
+Purpose: Data confidentiality (contents are hidden from third parties)
+Structure: Header.EncryptedKey.IV.Ciphertext.AuthTag
+Use Case: When the payload contains sensitive data (e.g., banking info, PII)
+
+✅ Advantages:
+          Keeps payload secret
+          Prevents unauthorized data exposure
+Example Use:
+          Secure transmission of user credentials or financial data
+          JWT used between microservices with private data
+
+structure of JWE (JSON Web Encryption), which is the encrypted version of JWT.
+
+Unlike a signed JWT (JWS), which just protects integrity, 
+a JWE protects confidentiality — meaning nobody 
+can see the data inside unless they decrypt it with the right key.
+
+🔐 What is JWE (JSON Web Encryption)?
+JWE = JWT that is encrypted instead of just signed
+It uses algorithms to:
+                    Encrypt the JWT payload
+                    Protect the key exchange
+                    Provide authentication of the encrypted message
+
+JWE Structure
+<Header>.<EncryptedKey>.<IV>.<Ciphertext>.<AuthenticationTag>
+
+
+
+
+
+
+
+
+
+
+🔒 3. JWKS (JSON Web Key Set) – Not a token, but related
+Purpose: Public key distribution format for JWT validation
+JWKS is not a JWT type itself, but a JSON structure that 
+contains public keys to verify JWTs.
+Used by OAuth providers like Google, Auth0, etc.
+
+
+✅ User logs in → Identity provider (e.g., Auth0) generates a 
+    JWT signed with its private key
+🚀 User accesses your API with the JWT
+🔍 Your API reads the JWT header and sees:
+    alg = RS256
+    kid = 1234abcd
+🌐 Your API fetches the JWKS from a public URL:
+    https://your-auth-provider.com/.well-known/jwks.json
+🔐 Finds the matching key (kid = 1234abcd)
+✅ Uses that key to verify the JWT's signature
