@@ -1,0 +1,77 @@
+In JWT (JSON Web Token), 
+Claims in JWT tokens carry information about the 
+user, 
+permissions, and the 
+token's validity. 
+They are essential for authenticating and authorizing requests 
+in a secure and stateless way.
+
+
+There are three types of claims in JWT:
+                        1. Registered Claims (Standard)
+                        2. Public Claims
+                        3. Private Claims
+
+
+
+🔹 1. Registered Claims (Standard)
+       These are predefined claims recommended by the JWT 
+       specification (RFC 7519). 
+       They provide commonly used fields to describe the token.
+ Claim                    Description                                 
+ `iss` (Issuer)           Who issued the JWT (e.g., auth server name) 
+ `sub` (Subject)          Whom the JWT is about (e.g., user ID)       
+ `aud` (Audience)         Who the JWT is intended for                 
+ `exp` (Expiration Time)  When the JWT will expire                    
+ `nbf` (Not Before)       Token is not valid before this time         
+ `iat` (Issued At)        When the JWT was issued                     
+ `jti` (JWT ID)           Unique identifier for the JWT               
+
+✅ These are optional but recommended for proper JWT management and validation.
+
+
+
+
+
+2. Public Claims
+    These are custom claims defined by users that can be 
+    shared publicly.
+    They should be registered in the IANA JWT registry to avoid 
+    collisions.
+
+      {
+      "name": "Mahindra",
+      "role": "admin"
+      }
+
+
+
+3. Private Claims
+                Private claims are custom claims agreed upon between 
+                the parties (client and server). 
+                They are not registered and not standardized.
+                {
+                  "user_id": "123456",
+                  "tier": "premium",
+                  "access_scope": "read:users write:files"
+                }
+✅ These are used for application-specific logic and are only
+    ameaningful within your system.
+
+1. Identity Verification
+  "sub": "1234567890",
+  "name": "Mahindra"
+2. Token Validity (Time-based)
+  "exp": 1710000000,
+  "iat": 1700000000
+3. Access Control / Authorization
+  "role": "admin",
+  "scope": "read:users write:files"
+4. Stateless Session Management
+  "email": "user@example.com",
+  "logged_in": true
+5. Multitenancy and Audience Targeting
+  "aud": "client-abc",
+  "tenant": "companyX"
+6. Preventing Replay Attacks
+  "jti": "abc123-def456"
