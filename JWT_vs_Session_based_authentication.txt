@@ -1,0 +1,13 @@
+ Feature                    JWT-Based Authentication                                       Session-Based Authentication                                     
+ Storage (Server Side)  Stateless — Server doesn’t store session info                  Stateful — Server stores session data (in memory/DB)             
+ Scalability            Highly scalable (no server memory load)                            Less scalable (needs sticky sessions or shared DB/cache)             
+ Client Stores          JWT token (e.g., in localStorage or cookies)                       Session ID (typically in a cookie)                                   
+ Token Format           Encoded JSON object (Header.Payload.Signature)                     Usually a random string as session ID                                
+ Authentication Flow    Token sent in `Authorization` header (Bearer token)                Session ID sent in `Cookie` header                                   
+ Verification           Server verifies JWT signature using secret/public key          Server looks up session ID in memory/Redis/DB                    
+ Performance            Faster — no lookup, just signature verification                    Slower — requires session lookup                                     
+ Security               Prone to CSRF if JWT stored in cookies (needs CSRF protection)     CSRF protected via same-origin cookies, but vulnerable without HTTPS 
+ Logout Mechanism       Difficult — token stored on client (needs blacklisting or expiry)  Easy — server can just delete the session                            
+ Expiration Handling    Built-in `exp` claim in JWT                                        Set on server or session store manually                              
+ Token Revocation       Harder — needs blacklist, short expiry + refresh token strategy    Easier — just remove session from store                              
+ Ideal For              APIs, SPAs, Microservices, Mobile apps                             Traditional web apps with server-side rendering                      
