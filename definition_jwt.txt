@@ -1,0 +1,70 @@
+JWT stands for JSON Web Token. 
+
+It is an open standard (RFC 7519) used to securely transmit information 
+between two parties as a JSON object. 
+
+It's widely used in authentication and authorization systems.
+
+🔐 Why JWT is used
+    Authentication: Verify the identity of users (e.g., after login).
+    Authorization: Allow or deny access to resources based on user roles.
+    Stateless Sessions: No need to store session on the server.
+    
+
+A stateless session means:
+      - The server does not store any session data (e.g., user details, 
+        login status) in memory or a database.
+      
+      - Instead, all necessary session data is encoded inside the JWT, 
+        which the client stores and sends with each request.
+      
+      This reduces memory usage and simplifies scaling across multiple 
+      servers (e.g., in a load balancer environment).
+
+
+🧱 Structure of JWT
+            A JWT is made up of three parts, separated by dots (.):
+ Header.Payload.Signature
+          
+example:
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
+            eyJ1c2VyX2lkIjoxMjMsIm5hbWUiOiJNYWhpbmRyYSJ9.
+            Hj6AyJczZz0r-kZsfyFxdkbGQ3mBqKjFQ1QvZKiKVJQ
+            
+Header :
+      Specifies the algorithm used to sign the token (e.g., HS256, RS256).
+      {
+        "alg": "HS256",
+        "typ": "JWT"
+      }
+Payload
+      Contains the actual claims (data) like user_id, email, exp, etc.
+      {
+        "user_id": 123,
+        "name": "Mahindra",
+        "role": "admin"
+      }
+3. Signature
+          Used to verify the token is not tampered.
+          
+          Created by signing the header + payload using a secret key 
+          (HS256) or private key (RS256).
+
+
+🔁 How JWT Works in a Real-Time Flow
+🔓 Login Flow
+- Client sends login credentials (username/password) to the server.
+- Server authenticates and returns a JWT token to the client.
+- Client stores the JWT (e.g., in localStorage or cookie).
+- For each request, client sends the JWT in Authorization header:
+                    Authorization: Bearer <token>
+- Server verifies the token using the secret key.
+- If valid → grant access. If expired/invalid → reject.
+
+
+
+❗ Security Note
+      Always use HTTPS to protect JWT in transit.
+      Never store sensitive info (e.g., password) inside the payload.
+      Set an exp (expiry) to prevent misuse.
+      Consider using refresh tokens for long-lived sessions.
