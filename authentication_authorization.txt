@@ -1,0 +1,52 @@
+  authentication_authorization
+
+                                    AUTHENTICATION 
+ Authentication is the process of verifying who the user is.
+
+Imagine you are entering your house.
+You unlock the door using your fingerprint or a key — this proves you are the owner.
+
+In tech terms:
+When you log in to a website using email & password, 
+fingerprint, OTP, Google Sign-In, etc., that’s authentication
+
+✅ Examples in Applications:
+    Logging in to Gmail using your email and password.
+    Using biometric login (Face ID, Fingerprint) on a banking app.
+    Entering a 2FA code (Two-Factor Authentication).
+
+                                AUTHORIZATION
+Authorization is the process of determining what an authenticated user is allowed to do.
+"What are you allowed to access?"
+
+After login (authenticated), authorization decides:
+Can you view this page?
+Can you delete a file?
+Can you access the admin dashboard?
+
+                        DIFFERENCE BETWEEN THEM 
+ Aspect         Authentication                       Authorization                         
+ Meaning        Verifies identity                Verifies permissions              
+ Comes First?   ✅ Yes                                ❌ After authentication                
+ Example        Login with username/password         Accessing admin panel if you’re admin 
+ Data Involved  Username, password, biometric, etc.  User roles, access policies           
+ Output         "You are verified"                   "You are allowed to do this"          
+
+
+
+ONLINE BANKING:
+
+                      Authentication:
+You open the banking site and enter your username & password. 
+Then, maybe an OTP is sent to your phone.
+🔒 You are now authenticated.
+
+                      Authorization:
+If you're a regular customer, you can view your account, transfer money.
+If you're a bank manager, you can also approve loans and view customer data.
+So the same login page gives access based on who the person is and 
+what role/permissions they have.
+                    
+                     🔑  Concept         Description                            
+                     ✅   Authentication  Confirms who you are               
+                     🔐  Authorization   Confirms what you're allowed to do 
