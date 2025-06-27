@@ -39,3 +39,9 @@ func main() {
 
 	fmt.Println("JWT Token:", signedToken)
 }
+
+/* 
+ Claim  Meaning                                                             
+ `iat`  Issued At: When the token was created. (`Unix()` gives seconds) 
+ `exp`  Expiration Time: When the token becomes invalid.                
+*/
