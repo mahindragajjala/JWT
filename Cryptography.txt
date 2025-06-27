@@ -1,0 +1,258 @@
+Cryptography 
+Cryptography is the science of securing information by transforming 
+it into a form that unauthorized parties cannot understand. 
+
+It is a fundamental aspect of secure communication, especially in 
+computer systems, networks, and software development.
+
+🔐 What is Cryptography?
+Definition:
+Cryptography is the practice and study of techniques for secure
+communication in the presence of third parties (called adversaries).
+
+
+ Goals of cryptography
+ Goal                 Description                                                   
+ Confidentiality  Ensure that only the intended recipient can read the data.    
+ Integrity        Ensure the message has not been altered in transit.           
+ Authentication   Ensure that the sender and receiver are who they claim to be. 
+ Non-repudiation  Prevent the sender from denying they sent the message.        
+
+
+  🔑 Types of Cryptography
+Symmetric Key Cryptography
+              Same key for encryption and decryption.
+              Example: AES (Advanced Encryption Standard)
+
+Sender and intended recipient share the same secret key.
+Only those who know this key can decrypt the data.
+
+    
+Asymmetric Key Cryptography
+              Public key for encryption, private key for decryption.
+              Example: RSA, ECC
+        
+The sender encrypts the message using the recipient’s public key.
+Only the recipient, who holds the private key, can decrypt it.
+📌 Example:
+Alice wants to send a secret message to Bob.
+She encrypts it with Bob's public key.
+Bob (and only Bob) can decrypt it using his 
+private key → Bob is the intended recipient.  
+        
+Hash Functions
+              No keys. Used for integrity check.
+              Example: SHA256, MD5 (not recommended now)
+
+
+
+
+✅ Who is the Intended Recipient?
+The intended recipient is the person (or system) for whom the 
+encrypted message was meant.
+They are the only one who should be able to decrypt and understand
+the original message.   
+
+🧠 Real-Time Example (WhatsApp)
+When you send a message:
+It is encrypted on your phone.
+Only the receiver’s phone (intended recipient) can decrypt it.
+Even WhatsApp servers cannot read the message.   
+
+
+
+CRYPTOGRAPHY WITH GO
+Go’s crypto standard library is rich and well-organized.             
+
+SYMMETRIC ENCRYPTION WITH AES(Advanced Encryption Standard) 
+                    package main
+                    
+                    import (
+                        "crypto/aes"
+                        "crypto/cipher"
+                        "crypto/rand"
+                        "fmt"
+                        "io"
+                    )
+                    
+                    func main() {
+                        key := []byte("examplekey123456") // 16 bytes for AES-128
+                        plaintext := []byte("Secret Message")
+                    
+                        block, err := aes.NewCipher(key)
+                        if err != nil {
+                            panic(err)
+                        }
+                    
+                        ciphertext := make([]byte, aes.BlockSize+len(plaintext))
+                        iv := ciphertext[:aes.BlockSize]
+                    
+                        if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+                            panic(err)
+                        }
+                    
+                        stream := cipher.NewCFBEncrypter(block, iv)
+                        stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
+                    
+                        fmt.Printf("Encrypted: %x\n", ciphertext)
+                    
+                        // Decrypt
+                        block, _ = aes.NewCipher(key)
+                        iv = ciphertext[:aes.BlockSize]
+                        decrypted := make([]byte, len(ciphertext[aes.BlockSize:]))
+                    
+                        stream = cipher.NewCFBDecrypter(block, iv)
+                        stream.XORKeyStream(decrypted, ciphertext[aes.BlockSize:])
+                    
+                        fmt.Printf("Decrypted: %s\n", decrypted)
+                    }
+            
+ASYMMETRIC ENCRYPTION WITH RSA
+                package main
+                
+                import (
+                    "crypto/rand"
+                    "crypto/rsa"
+                    "crypto/sha256"
+                    "fmt"
+                )
+                
+                func main() {
+                    privateKey, _ := rsa.GenerateKey(rand.Reader, 2048)
+                    publicKey := &privateKey.PublicKey
+                
+                    message := []byte("Top Secret Data")
+                    label := []byte("")
+                    hash := sha256.New()
+                
+                    ciphertext, _ := rsa.EncryptOAEP(hash, rand.Reader, publicKey, message, label)
+                    fmt.Printf("Encrypted: %x\n", ciphertext)
+                
+                    plaintext, _ := rsa.DecryptOAEP(hash, rand.Reader, privateKey, ciphertext, label)
+                    fmt.Printf("Decrypted: %s\n", plaintext)
+                }
+
+
+HASHING WITH SHA256
+                   package main
+                  
+                  import (
+                      "crypto/sha256"
+                      "fmt"
+                  )
+                  
+                  func main() {
+                      msg := "This is a message"
+                      hash := sha256.Sum256([]byte(msg))
+                  
+                      fmt.Printf("Original: %s\n", msg)
+                      fmt.Printf("SHA256: %x\n", hash)
+                  }
+             
+Use cases in the programming
+ Use Case                            Example Technology                    
+ Password storage                    Hash with salt                        
+ Securing messages (e.g., WhatsApp)  AES for content, RSA for key exchange 
+ TLS (HTTPS)                         Uses RSA/ECC, AES, SHA256             
+ JWT Authentication                  HMAC or RSA signature                 
+ Digital Signatures                  RSA, ECDSA                            
+
+
+
+Go Crypto Libraries to Explore Further
+        crypto/aes – for AES encryption
+        crypto/rsa – for RSA
+        crypto/ecdsa – for ECDSA
+        crypto/sha256 – for SHA-256
+        crypto/hmac – for HMAC hashing
+        golang.org/x/crypto – Extra crypto utilities like Argon2, bcrypt                  
+
+Cryptography in JWT (JSON Web Token)   
+        - JWTs (JSON Web Tokens) are widely used in "authentication" and 
+          "authorization" systems. 
+        - They use cryptographic techniques to ensure the integrity and 
+          optionally the confidentiality of the token.      
+
+
+JWT Structure
+          A JWT is composed of three parts:
+                                          header.payload.signature
+          Each part is Base64Url encoded.
+
+Cryptography Types Are Used in JWT?
+ 1. HMAC (Symmetric Key Signing)
+          Algorithm: HS256, HS384, HS512
+          Based on HMAC (Hash-based Message Authentication Code)
+          using a shared secret.
+          Same secret key is used for signing and verifying.                           
+          {
+            "alg": "HS256",
+            "typ": "JWT"
+          }
+          🧠 Used when:
+          Both the client and server share a secret key.
+          Common in internal systems.
+ 2. RSA (Asymmetric Key Signing)
+        Algorithm: RS256, RS384, RS512
+        Uses RSA keys:
+        Private key signs the token.
+        Public key verifies the signature.
+        {
+          "alg": "RS256",
+          "typ": "JWT"
+        }
+        🧠 Used when:
+        You need to expose public verification 
+        (e.g., third-party services).
+        Only the server holds the private key.
+
+3. ECDSA (Elliptic Curve Digital Signature)
+        Algorithm: ES256, ES384, ES512
+        Like RSA, but uses elliptic curve cryptography.
+        Smaller size, faster performance.
+        🧠 Used in:
+        Systems where performance and compact size matter (e.g., mobile apps).
+               
+                            
+Integrity :-   Integrity means the data has not been changed, 
+                tampered with, or altered in any way during transit or storage.
+                Imagine you write a cheque to someone for ₹10,000.
+                
+                If someone changes it to ₹1,00,000
+                while it's being delivered, the integrity is broken.  
+                
+                 In Digital Systems:
+                If you send a file or a message, and even one bit changes, 
+                it's a breach of integrity.
+                Cryptographic hash functions (like SHA256) or digital signatures 
+                are used to ensure integrity. 
+                
+                ✅ How to Ensure?
+                Hashes: e.g., storing a hash of the original file and 
+                comparing it later.
+                
+                JWT Signature: the signature ensures that the token's payload 
+                hasn't been altered.       
+
+
+Confidentiality:- 
+                Confidentiality means only authorized parties can read or access 
+                the data. No one else can understand it.     
+                                              
+                🧠 Real-Life Example:
+                Imagine you put a letter in a locked box, and only your
+                friend has the key.
+                Even if someone intercepts the box, they cannot open or read 
+                the message.
+                
+                🔍 In Digital Systems:
+                If you send login credentials or banking info, you want 
+                only the intended server to read it.
+                
+                Encryption is used to ensure confidentiality.
+                
+                ✅ How to Ensure?
+                Symmetric Encryption (AES): One shared key for both encryption and decryption.
+                Asymmetric Encryption (RSA): Public key encrypts, private key decrypts.
+                
+                                              
