@@ -7,36 +7,26 @@
 5. Base64, JSON encoding/decoding
 6. Basic cryptography (HMAC, RSA, etc.)
 
-
-
  🧩 Core JWT Concepts (Theory)
 
 1. What is JWT?
 2. JWT vs Sessionbased authentication
 3. Structure of a JWT: Header, Payload, Signature
 4. Types of JWT:
-
    * Access Tokens
    * Refresh Tokens
 5. JWT encoding: Base64Url
 6. Algorithms used:
-
    * HS256 (HMAC + SHA256)
    * RS256 (RSA + SHA256)
 7. JWT Claims:
-
-   * Registered claims (`iss`, `sub`, `aud`, `exp`, `iat`, `nbf`, `jti`)
+   * Registered claims (`iss`, `sub`, `aud`, `exp`, `iat`, `nbf`,                           `jti`)
    * Public claims
    * Private claims
 
-
-
- ⚙️ JWT in Golang  Implementation Topics
-
+⚙️ JWT in Golang - Implementation Topics
  🔐 Token Creation
-
 1. Installing JWT library:
-
    * `github.com/golangjwt/jwt/v5`
    * or older: `github.com/dgrijalva/jwtgo`
 2. Creating JWT token (HS256 or RS256)
