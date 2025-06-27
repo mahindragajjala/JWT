@@ -1,0 +1,76 @@
+JSON (JavaScript Object Notation) is a lightweight data-interchange 
+format used widely to transmit structured data between a server and
+a client.
+✅ In Golang:
+Encoding means converting Go data types (like struct, map, slice) 
+into JSON format.
+Decoding means converting JSON data into Go data types.
+
+"Go provides this through the encoding/json package."
+
+Common Functions in encoding/json package:
+ Function             Purpose                                       
+ json.Marshal()     Encode (convert) Go struct to JSON            
+ json.Unmarshal()   Decode (parse) JSON into Go struct            
+ json.NewEncoder()  Encode directly to a stream (e.g. file, http) 
+ json.NewDecoder()  Decode directly from a stream                 
+
+ENCODING GO STRUCT TO JSON
+                package main
+                
+                import (
+                	"encoding/json"
+                	"fmt"
+                )
+                
+                type User struct {
+                	Name  string `json:"name"`
+                	Age   int    `json:"age"`
+                	Email string `json:"email"`
+                }
+                
+                func main() {
+                	user := User{Name: "Mahindra", Age: 28, Email: "mahindra@example.com"}
+                
+                	jsonData, err := json.Marshal(user)
+                	if err != nil {
+                		fmt.Println("Error encoding JSON:", err)
+                		return
+                	}
+                
+                	fmt.Println("Encoded JSON:", string(jsonData))
+                }
+Encoded JSON: {"name":"Mahindra","age":28,"email":"mahindra@example.com"}
+
+
+DECODING TO JSON TO GO STRUCT
+                package main
+                
+                import (
+                	"encoding/json"
+                	"fmt"
+                )
+                
+                type User struct {
+                	Name  string `json:"name"`
+                	Age   int    `json:"age"`
+                	Email string `json:"email"`
+                }
+                
+                func main() {
+                	jsonInput := `{"name":"Mahindra","age":28,"email":"mahindra@example.com"}`
+                
+                	var user User
+                	err := json.Unmarshal([]byte(jsonInput), &user)
+                	if err != nil {
+                		fmt.Println("Error decoding JSON:", err)
+                		return
+                	}
+                
+                	fmt.Printf("Decoded Struct: %+v\n", user)
+                }
+Decoded Struct: {Name:Mahindra Age:28 Email:mahindra@example.com}
+
+ Scenario          Description                                                  
+ API Request   JSON from frontend is decoded to Go struct (Unmarshal).      
+ API Response  Go struct is encoded to JSON and sent to frontend (Marshal). 
