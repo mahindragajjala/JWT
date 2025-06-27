@@ -1,0 +1,52 @@
+We want to encode the string: "Man"
+Step 1: Convert Each Character to ASCII
+         Character  ASCII  Binary     
+         M          77     `01001101` 
+         a          97     `01100001` 
+         n          110    `01101110` 
+👉 Combined binary:
+01001101 01100001 01101110 (24 bits)
+
+Step 2: Break into 6-Bit Chunks
+We split the 24-bit binary into 4 chunks of 6 bits:
+
+Step 3: Map Each Decimal to Base64 Alphabet
+Using Base64 index table:
+          Decimal  Base64 Char 
+           19       T           
+           22       W           
+           5        F           
+           46       u           
+✅ So, "Man" → Base64: "TWFu"
+
+converting in the go code
+                            package main
+                            
+                            import (
+                            	"encoding/base64"
+                            	"fmt"
+                            )
+                            
+                            func main() {
+                            	input := "Man"
+                            	// Step 1: Convert string to bytes
+                            	data := []byte(input)
+                            
+                            	// Step 2: Pass bytes to base64 encoder
+                            	encoded := base64.StdEncoding.EncodeToString(data)
+                            
+                            	// Step 3: Print result
+                            	fmt.Println(encoded) // Output: TWFu
+                            }
+CALL FLOW OF STRING TO BASE64:
+                              Input (String) 
+                                 ↓
+                              Convert to Bytes ([]byte)
+                                 ↓
+                              Split into 6-bit binary groups
+                                 ↓
+                              Map each 6-bit group to Base64 character
+                                 ↓
+                              Join Base64 characters into encoded string
+                                 ↓
+                              Output: Base64-encoded string
