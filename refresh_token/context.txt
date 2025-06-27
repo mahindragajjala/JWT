@@ -1,0 +1,10 @@
+The server provides:
+              /login endpoint to generate access + refresh tokens.
+              /refresh-token to refresh the access token.
+              /protected route accessible only with valid access token.
+
+The client:
+          Logs in, gets both tokens.
+          Calls the protected route with the access token.
+          Simulates expiry (optional), then refreshes the access token.
+
