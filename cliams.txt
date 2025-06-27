@@ -43,7 +43,8 @@ There are three types of claims in JWT:
       "name": "Mahindra",
       "role": "admin"
       }
-
+example:
+A Single Sign-On (SSO) provider (like Google) authenticates users for many apps (e.g., YouTube, Gmail).
 
 
 3. Private Claims
@@ -55,6 +56,12 @@ There are three types of claims in JWT:
                   "tier": "premium",
                   "access_scope": "read:users write:files"
                 }
+example :
+department, role, access_level, project_ids: These are private claims, because only your system understands them.
+
+No one outside Mahindra Tech knows what "access_level": "superuser" means unless you document and enforce it.
+
+
 ✅ These are used for application-specific logic and are only
     ameaningful within your system.
 
