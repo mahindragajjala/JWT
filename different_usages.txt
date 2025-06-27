@@ -1,0 +1,66 @@
+JWT based on their usage 
+— primarily in authentication and authorization systems like 
+  OAuth2 or OpenID Connect.
+
+Here’s a detailed explanation of these two JWT types by purpose:
+
+
+🔑 1. Access Tokens
+Purpose: Used to access protected resources (like APIs)
+Lifespan: Short-lived (typically a few minutes up to 1 hour)
+Stored in: LocalStorage, memory, or HTTP-only cookies 
+            (depends on frontend design)
+Structure: Usually a signed JWT (JWS)
+
+✅ Properties:
+Encodes user identity and permissions
+Sent in the Authorization: Bearer <token> header
+Validated by backend/API server
+                    {
+                      "sub": "1234567890",
+                      "role": "admin",
+                      "exp": 1710000000,
+                      "iat": 1709996400
+                    }
+🔒 Note:
+- If leaked, attackers can access the APIs until it expires
+- Must be kept secure (don’t store in 
+  localStorage in browser if possible)
+
+
+
+
+
+🔁 2. Refresh Tokens
+Purpose: Used to obtain new access tokens after the current one expires
+Lifespan: Long-lived (days, weeks, or months)
+Stored in: Secure storage (like HTTP-only, secure cookies)
+Structure: May or may not be a JWT — sometimes it's just a random UUID
+✅ Properties:
+              Never sent with every request
+              Only sent to a dedicated token refresh endpoint
+              Requires stronger protection because of its long life
+{
+  "sub": "1234567890",
+  "type": "refresh",
+  "exp": 1712600000
+}
+🔒 Security Measures:
+          Should be stored securely and encrypted
+          Should be revoked if user logs out or session is hijacked
+
+
+
+🔄 Real Time Flow Example:
+🔐 User logs in
+      Server issues:
+                    Access token (valid for 15 min)
+                    Refresh token (valid for 7 days)
+
+📤 Client sends access token with each API request.
+❌ When access token expires, client:
+            Sends refresh token to /auth/refresh
+            Gets a new access token
+🚪 User logs out or refresh token is compromised
+            Refresh token is revoked
+
