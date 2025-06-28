@@ -22,3 +22,12 @@ func main() {
 		panic("Failed to start HTTPS server: " + err.Error())
 	}
 }
+
+
+/*
+🔐 You’ll need a TLS certificate (cert.pem) and key (key.pem).
+For local testing:
+
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+-keyout key.pem -out cert.pem -subj "/CN=localhost"
+*/
