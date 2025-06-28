@@ -1,0 +1,143 @@
+A complete Go microservices JWT demo (auth + service).
+
+                🔐 Auth service: issues JWT
+                👤 User service: verifies JWT
+                🛒 Cart service: verifies JWT
+                📦 Order service: verifies JWT
+                💳 Payment service: verifies JWT
+                🔔 Notification service: optional
+                    +--------+                                     +---------------+
+                    | Client |                                     |  Auth Server  |
+                    +--------+                                     +---------------+
+                         |                                                |
+                         | 1. Send login request with credentials         |
+                         |----------------------------------------------->|
+                         |                                                |
+                         | 2. Auth server verifies credentials            |
+                         | 3. Auth server creates JWT                     |
+                         |    - Signs it with PRIVATE KEY (RS256)         |
+                         |<-----------------------------------------------|
+                         | 4. Client receives and stores the JWT token    |
+                         |    (usually in localStorage or cookie)         |
+                         |                                                |
+                         |------------------------------------------------|
+                         |                                                |
+                         |     [Time Passes... Client Sends Request]      |
+                         |------------------------------------------------|
+                         | 5. Client sends API request with JWT in header |
+                         |    Authorization: Bearer <JWT>                 |
+                         |----------------------------------------------->|
+                         |                                                |
+                         | 6. API Server verifies JWT signature using     |
+                         |    the PUBLIC KEY                              |
+                         | 7. If valid, extracts claims (e.g. user, role) |
+                         | 8. Processes the request                       |
+                         |<-----------------------------------------------|
+                         | 9. Sends protected resource/data               |
+
+
+ Microservice                 Responsibility                                                                 
+ ✅ Auth Service          Handles user login, registration, and issues JWTs (signed with private key).   
+ ✅ User Service          Manages user profile data; verifies JWT using the public key.                  
+ 🛒 Cart Service          Manages items added to user's cart; uses JWT to authorize user actions.        
+ 📦 Order Service         Handles order placement, history, tracking; uses JWT to get user identity.     
+ 💳 Payment Service       Processes payments and confirms transactions; uses JWT to authenticate user.   
+ 📬 Notification Service  Sends SMS/email updates (order placed, delivered, etc). Uses user ID from JWT. 
+ 📈 Analytics Service     Gathers behavioral/user activity; may extract user info from JWT if needed.    
+
+
+
+🔗 How JWT Ties Them All Together
+    - All services use JWT verification middleware 
+      (public key validation).
+    - Every request includes a JWT in the Authorization: 
+      Bearer <token> header.
+    - Services don’t need to talk to Auth Service to validate tokens
+      — just verify with public key.
+
+                         +-------------------------+
+                               Auth Service       
+                           - Issues JWT token     
+                         +-------------------------+
+                                   
+                          JWT (RS256 signed)
+                                   v
++--------------+   +--------------+   +--------------+   +--------------+
+ User Service     Cart Service     Order Service    Payment Srvc 
+ Verifies JWT     Verifies JWT     Verifies JWT     Verifies JWT
++--------------+   +--------------+   +--------------+   +--------------+
+                                   
+                      [Authorization: Bearer <token>]
+                                   
+                               +--------+
+                                Client 
+                               +--------+
+go-microservices-jwt/
+├── auth-service/
+│   ├── main.go
+│   ├── private.key
+├── user-service/
+│   ├── main.go
+│   ├── public.key
+├── cart-service/
+│   ├── main.go
+│   ├── public.key
+├── order-service/
+│   ├── main.go
+│   ├── public.key
+├── payment-service/
+│   ├── main.go
+│   ├── public.key
+├── go.mod
+
+
+
+🔐 Key Setup (once)
+Run this once in the root directory:
+# Generate private key
+openssl genrsa -out auth-service/private.key 2048
+
+# Generate public key from private key
+openssl rsa -in auth-service/private.key -pubout -out user-service/public.key
+cp user-service/public.key cart-service/
+cp user-service/public.key order-service/
+cp user-service/public.key payment-service/
+
+
+
+Testing :
+curl -X POST http://localhost:8000/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"mahindra"}'
+
+Use JWT on other services
+curl -H "Authorization: Bearer <token>" http://localhost:8001/profile
+curl -H "Authorization: Bearer <token>" http://localhost:8002/cart
+curl -H "Authorization: Bearer <token>" http://localhost:8003/orders
+curl -X POST -H "Authorization: Bearer <token>" http://localhost:8004/pay
+
+
+-----------------------------------------------------------------------------------------------------------
+How Are the Keys Created in Real-Time?
+✅ Step 1: Server Admin or DevOps Team generates the key pair
+                              # Generate 2048-bit private key
+                              openssl genrsa -out private.key 2048
+                              
+                              # Extract public key from private key
+                              openssl rsa -in private.key -pubout -out public.key
+
+
+                  private.key: Only for auth server (signing)
+                  public.key: For other API servers (verifying)
+
+🏢 Real-Time Deployment Scenarios
+🔒 Auth Server (e.g., auth-service)
+        Stores: private.key
+        Uses: jwt.NewWithClaims(SigningMethodRS256, claims).SignedString(privateKey)
+        Never shares the private key with anyone
+📡 API Gateway / Microservices
+        Store: public.key
+        Use to verify JWT:
+        jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+            return publicKey, nil
+        })
