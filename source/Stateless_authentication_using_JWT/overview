@@ -1,0 +1,29 @@
+Stateless authentication means:
+- server does not store any session information.
+- Instead, it trusts the data inside the JWT token, which is sent with every request.
+- The client stores the token (usually in localStorage or cookies) and 
+  sends it with each request (usually in the Authorization header).
+
+                          +--------+             +-------------+              
+                          | Client |             |  Server     |
+                          +--------+             +-------------+
+                               |                        |
+                               |   1. Login Request     |
+                               |----------------------->|  
+                               |                        |
+                               |   2. Verify credentials|
+                               |                        |
+                               |   3. Create JWT        |
+                               |<-----------------------|
+                               |  JWT: token123         |
+                               |                        |
+                               | 4. Store JWT (localStorage)  
+                               |                        |
+                               | 5. Request with JWT     |
+                               |----------------------->|  ----> (Authorization: Bearer token123)
+                               |                        |
+                               | 6. Validate token (stateless)  
+                               | 7. Send Protected Data |
+                               |<-----------------------|
+✅ At step 6, server does NOT check any session — it just verifies the JWT signature and expiry.
+
