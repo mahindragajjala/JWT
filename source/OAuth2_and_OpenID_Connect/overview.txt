@@ -1,0 +1,61 @@
+                                      JWT with OAuth2 and OpenID Connect
+
+OAuth2 is a framework for authorization.
+OpenID Connect (OIDC) is a layer on top of OAuth2 for authentication.
+JWT (JSON Web Token) is the token format used to securely transmit identity and access data.
+
+
+Resource Owner: The user
+Client: The application requesting access (e.g., frontend or mobile app)
+Authorization Server: Issues tokens (e.g., Auth0, Keycloak, Okta)
+Resource Server: API/backend that serves data, needs JWT for access.
+
+          +---------+                                           +---------------+
+          |         |--(A)- Authorization Request -------------->|               |
+          |         |     (with OIDC scope like 'openid')        | Authorization |
+          |  Client |                                           |    Server     |
+          |         |<-(B)---- Authorization Code ---------------|               |
+          +---------+                             e              +---------------+
+               |                                                        |
+               | (C) Authorization Code + PKCE --> Token Request        |
+               |                                                        |
+               |<-(D)- JWT Access Token + ID Token + Refresh Token -----|
+               |                                                        |
+               |                                                        |
+               | (E) Access Token -->                                    |
+               |            +------------------->+-------------------+  |
+               +------------|    API Request     |                   |  |
+                            |  Resource Server   |  Validates JWT    |<--+
+                            +-------------------+                   |
+                                                 +------------------+
+Step A: Authorization Request
+        Client redirects user to Auth Server:
+        "
+          GET /authorize?response_type=code
+            &client_id=abc123
+            &redirect_uri=https://client.com/callback
+            &scope=openid profile email
+            &state=xyz
+            &code_challenge=hashed_code
+            &code_challenge_method=S256
+                                        "
+Step B: User logs in
+        Authorization server authenticates user (OIDC) - OpenID Connect
+        Sends authorization code to the client
+Step C: Token Exchange (Backchannel)
+        Client sends code + PKCE verifier to get tokens:
+        POST /token
+            - grant_type=authorization_code
+            - code=...
+            - redirect_uri=...
+            - code_verifier=...
+Step D: Tokens Received
+        Authorization server returns:
+                      Access Token (JWT): For API access
+                      ID Token (JWT): Contains user identity (OpenID Connect)
+                      Refresh Token: To get new tokens when expired
+
+Step E: API Call with JWT
+        Client sends the access token in Authorization: Bearer <JWT>
+        Resource server validates JWT (signature, expiration, etc.)
+        Grants or denies access
