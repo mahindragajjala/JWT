@@ -115,3 +115,29 @@ curl -H "Authorization: Bearer <token>" http://localhost:8001/profile
 curl -H "Authorization: Bearer <token>" http://localhost:8002/cart
 curl -H "Authorization: Bearer <token>" http://localhost:8003/orders
 curl -X POST -H "Authorization: Bearer <token>" http://localhost:8004/pay
+
+
+-----------------------------------------------------------------------------------------------------------
+How Are the Keys Created in Real-Time?
+✅ Step 1: Server Admin or DevOps Team generates the key pair
+                              # Generate 2048-bit private key
+                              openssl genrsa -out private.key 2048
+                              
+                              # Extract public key from private key
+                              openssl rsa -in private.key -pubout -out public.key
+
+
+                  private.key: Only for auth server (signing)
+                  public.key: For other API servers (verifying)
+
+🏢 Real-Time Deployment Scenarios
+🔒 Auth Server (e.g., auth-service)
+        Stores: private.key
+        Uses: jwt.NewWithClaims(SigningMethodRS256, claims).SignedString(privateKey)
+        Never shares the private key with anyone
+📡 API Gateway / Microservices
+        Store: public.key
+        Use to verify JWT:
+        jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+            return publicKey, nil
+        })
