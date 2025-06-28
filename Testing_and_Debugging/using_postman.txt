@@ -1,0 +1,37 @@
+- Postman is a tool used to test HTTP requests. 
+
+- With JWT, Postman helps simulate the login flow, get the token, 
+  and then use it in authorized API requests.
+
+🔧 Real-Time Flow:
+1. Login Request to Get Token
+    Use POST /login or /authenticate
+    In Body → choose raw → select JSON format.
+    Example JSON:
+                  {
+                    "username": "mahindra",
+                    "password": "secret123"
+                  }
+    Click Send and the response should return:
+    {
+      "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI..."
+    }
+
+2. Send Authenticated Request
+  Use another request like GET /dashboard or POST /data
+  Go to Headers tab
+  Key: Authorization
+  Value: Bearer <paste_token_here>
+
+3.Test Expired/Invalid Token
+  Manually edit or corrupt the token in Authorization header.
+  Example:
+  Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.WRONG.SIGNATURE
+  Observe server’s response, usually:
+                    401 Unauthorized
+                    Token expired, Invalid token, etc.
+
+🪛 Debug Tips:
+  Use console logs in the backend to log token parsing errors.
+  Check timestamp claims like exp, iat in JWT.
+  Always verify the backend logs when Postman says 401 or 403.
