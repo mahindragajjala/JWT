@@ -1,0 +1,32 @@
+The https://jwt.io website is a tool for 
+decoding, 
+debugging, and 
+validating JWTs. 
+
+It helps you visually inspect JWT token parts: 
+        header, payload, and signature.
+
+🔍 How to Decode JWT using jwt.io
+Step-by-step:
+      Go to 👉 https://jwt.io
+      Paste your JWT (from your Postman test or your app’s response) 
+      into the left-hand text box.
+
+Example:
+      eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
+      eyJ1c2VyX2lkIjoxMjMsIm5hbWUiOiJNYWhpbmRyYSIsImV4cCI6MTY5MDAwMDAwMH0.
+      Xy8Q0RZrDypvG6fYXvnBd3Dg_YoRp9j3mY7sRhG7zA4
+On the right side, it will show:
+                                Header:
+                                {
+                                  "alg": "HS256",
+                                  "typ": "JWT"
+                                }
+                                Payload:
+                                {
+                                  "user_id": 123,
+                                  "name": "Mahindra",
+                                  "exp": 1690000000
+                                }
+            Signature is validated if you provide the correct 
+            secret key in the "Verify Signature" section (optional).          
