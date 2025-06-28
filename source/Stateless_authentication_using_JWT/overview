@@ -27,3 +27,14 @@ Stateless authentication means:
                                |<-----------------------|
 ✅ At step 6, server does NOT check any session — it just verifies the JWT signature and expiry.
 
+🎫 Stateless Example: JWT Token
+You log in and get a signed JWT.
+That token contains your identity and expiry.
+On every request, you send the token.
+The server:
+          verifies the token signature ✅
+          trusts its contents ✅
+          processes the request ✅
+
+Server does not store session or any user data in memory.
+👉 This is stateless.
