@@ -6,6 +6,34 @@ A complete Go microservices JWT demo (auth + service).
                 📦 Order service: verifies JWT
                 💳 Payment service: verifies JWT
                 🔔 Notification service: optional
+                    +--------+                                     +---------------+
+                    | Client |                                     |  Auth Server  |
+                    +--------+                                     +---------------+
+                         |                                                |
+                         | 1. Send login request with credentials         |
+                         |----------------------------------------------->|
+                         |                                                |
+                         | 2. Auth server verifies credentials            |
+                         | 3. Auth server creates JWT                     |
+                         |    - Signs it with PRIVATE KEY (RS256)         |
+                         |<-----------------------------------------------|
+                         | 4. Client receives and stores the JWT token    |
+                         |    (usually in localStorage or cookie)         |
+                         |                                                |
+                         |------------------------------------------------|
+                         |                                                |
+                         |     [Time Passes... Client Sends Request]      |
+                         |------------------------------------------------|
+                         | 5. Client sends API request with JWT in header |
+                         |    Authorization: Bearer <JWT>                 |
+                         |----------------------------------------------->|
+                         |                                                |
+                         | 6. API Server verifies JWT signature using     |
+                         |    the PUBLIC KEY                              |
+                         | 7. If valid, extracts claims (e.g. user, role) |
+                         | 8. Processes the request                       |
+                         |<-----------------------------------------------|
+                         | 9. Sends protected resource/data               |
 
 
  Microservice                 Responsibility                                                                 
