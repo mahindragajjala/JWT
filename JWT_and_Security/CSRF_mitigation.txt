@@ -1,0 +1,68 @@
+CSRF (Cross-Site Request Forgery)
+     CSRF is an attack that tricks a user into performing 
+     unwanted actions on a web application where they're 
+     already authenticated.
+
+🔥 Scenario:
+          You're building a banking web app. 
+                    The user logs in and gets a JWT stored in a cookie. 
+                    A hacker’s malicious website tries to trick the user's 
+                    browser into transferring money.
+          
+          CSRF is an attack that tricks a user into performing unwanted actions
+          on a web application where they're already authenticated.
+          
+          
+          VULNERABLE - exposed to the possibility of being attacked or 
+                       harmed, either physically or emotionally.
+
+🔄 How JWT Can Be Vulnerable to CSRF
+          If JWT tokens are stored in cookies, and the cookie is 
+          automatically sent with every request by the browser, 
+          an attacker could forge a request using the victim’s session.
+          Example:
+                    You log in to bank.com and get a JWT stored in a cookie.
+                    You then visit evil.com, which has a hidden form:
+          
+          <form action="https://bank.com/transfer" method="POST">
+            <input type="hidden" name="amount" value="5000" />
+            <input type="hidden" name="to_account" value="attacker123" />
+            <input type="submit" />
+          </form>
+          
+          
+          Your browser sends the request to bank.com with 
+          the JWT cookie automatically.
+          
+          The transfer happens without your knowledge. 😨
+
+MITIGATE - make (something bad) less severe, serious, or painful.
+
+HOW TO MITIGATE CSRF IN JWT-BASED AUTHENTICATION
+✅ 1. Store JWT in Local Storage (or Session Storage)
+          - Local Storage is not automatically sent with requests 
+            — unlike cookies.
+          - So CSRF becomes impossible, because attacker's site 
+          cannot access or send your localStorage token.
+          🔍 But this opens you to XSS, so sanitize all inputs.
+✅ 2. Use SameSite Cookies (for JWT in cookies)
+          If you must store JWT in cookies, set the cookie like this:
+          Set-Cookie: token=abc.jwt.token; SameSite=Strict; Secure; HttpOnly
+          SameSite=Strict → cookies are not sent with cross-origin requests
+          
+          HttpOnly → JavaScript can’t read it (XSS mitigation)
+          
+          Secure → only sent over HTTPS
+          
+          ✅ Prevents CSRF and reduces XSS risks.
+
+✅ 3. Double Submit Cookie Pattern (for extra CSRF protection)
+          How it works:
+          JWT stored in a cookie (HttpOnly).
+          On every request, client also sends a 
+          custom header with a CSRF token.
+          Server compares the value in the cookie and the header.
+
+🧠 If attacker cannot access cookies (HttpOnly), 
+   they cannot read JWT to replicate header value — CSRF fails.
+
