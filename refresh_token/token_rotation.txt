@@ -1,0 +1,155 @@
+"Every time a refresh token is used to get a new access token, 
+the server gives you a brand-new refresh token — and the old 
+one becomes useless."
+
+To prevent stolen refresh tokens from being reused.
+      If a hacker steals your refresh token and tries to use it again, 
+      the server will know it was already used — and will block the
+      request immediately.
+
+Handling JWT token rotation in Go is an important part of securing 
+your application when using access and refresh tokens. 
+
+It prevents token reuse attacks and ensures the client always 
+uses the most recent refresh token.
+
+
+🔄 What is Token Rotation?
+    Token rotation is a process where:
+    - When a refresh token is used to get a new access token, 
+      a new refresh token is issued.
+    
+    - The old refresh token is invalidated.
+    
+    - If an old refresh token is used again, it's detected as a 
+      replay attack, and access is denied.
+
+🔐 Why Token Rotation?
+Without rotation:
+        A stolen refresh token can be reused forever (until expiry).
+With rotation:
+              Reuse of a refresh token can be detected, and the user 
+              can be logged out or asked to reauthenticate.
+
+✅ How to Implement Token Rotation in Go?
+🔧 Project Setup
+Assume you have:
+        Access tokens with short expiry (e.g. 15 minutes)
+        Refresh tokens with longer expiry (e.g. 7 days)
+        A store (in-memory, Redis, or DB) for tracking refresh tokens
+
+
++-------------+                                      +---------------+
+|             |                                      |               |
+|   CLIENT    |                                      |    SERVER     |
+|             |                                      |               |
++-------------+                                      +---------------+
+
+     |                                                       |
+     | --- [Login Request: username/password] -------------> |
+     |                                                       |
+     | <--- [Access Token + Refresh Token (R1)] ------------ |
+     |                                                       |
+     |             [Store both tokens in client]             |
+     |                                                       |
+     | -- [Use Access Token (A1) in Authorization Header] -->|
+     |                                                       |
+     | <----------- [Protected API Response] --------------- |
+     |                                                       |
+     |              [Time Passes... A1 Expires]              |
+     |                                                       |
+     | ===> Start Token Rotation                             |
+     |                                                       |
+     | -- [Send Refresh Token (R1) to /refresh-token] -----> |
+     |                                                       |
+     |    [Validate R1: Check Signature + Claims]            |
+     |    [Check if refresh_uuid exists in store]            |
+     |    [If exists: delete old refresh_uuid (R1)]          |
+     |    [Create New Tokens: Access Token (A2), Refresh (R2)]|
+     |    [Store refresh_uuid of R2 in token store]          |
+     |                                                       |
+     | <--- [New Tokens: A2 + R2] --------------------------  |
+     |                                                       |
+     |      [Client stores A2 + replaces R1 with R2]         |
+     |                                                       |
+     | -- [Send API request using Access Token (A2)] ------> |
+     |                                                       |
+     | <----------- [Protected API Response] --------------- |
+     |                                                       |
+     |                                                       |
+     | ====>>> ATTACK: Replay with Old Refresh Token R1     |
+     |                                                       |
+     | -- [Send old Refresh Token (R1)] -------------------> |
+     |                                                       |
+     | [Check token store: refresh_uuid for R1 not found]    |
+     | [Detect Replay Attack → Invalidate Session / Alert]   |
+     |                                                       |
+     | <--- [401 Unauthorized - Replay Detected] ----------- |
+     |                                                       |
+
+Token Struct and Utilities
+                      type TokenDetails struct {
+                          AccessToken  string
+                          RefreshToken string
+                          AccessUUID   string
+                          RefreshUUID  string
+                          AtExpires    int64
+                          RtExpires    int64
+                      }
+Generate Token Pair
+      func CreateToken(userID string) (*TokenDetails, error) {
+          td := &TokenDetails{}
+          td.AtExpires = time.Now().Add(15 * time.Minute).Unix()
+          td.AccessUUID = uuid.NewString()
+      
+          td.RtExpires = time.Now().Add(7 * 24 * time.Hour).Unix()
+          td.RefreshUUID = uuid.NewString()
+      
+          // Create Access Token
+          atClaims := jwt.MapClaims{}
+          atClaims["authorized"] = true
+          atClaims["access_uuid"] = td.AccessUUID
+          atClaims["user_id"] = userID
+          atClaims["exp"] = td.AtExpires
+          at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
+          token, err := at.SignedString([]byte("ACCESS_SECRET"))
+          if err != nil {
+              return nil, err
+          }
+          td.AccessToken = token
+      
+          // Create Refresh Token
+          rtClaims := jwt.MapClaims{}
+          rtClaims["refresh_uuid"] = td.RefreshUUID
+          rtClaims["user_id"] = userID
+          rtClaims["exp"] = td.RtExpires
+          rt := jwt.NewWithClaims(jwt.SigningMethodHS256, rtClaims)
+          refreshToken, err := rt.SignedString([]byte("REFRESH_SECRET"))
+          if err != nil {
+              return nil, err
+          }
+          td.RefreshToken = refreshToken
+      
+          return td, nil
+      }
+
+
+REAL TIME EXAMPLE :
+Imagine you're staying at a hotel.
+
+🏨 On check-in, the hotel gives you 2 cards:
+          - Access Card (opens the room, valid for 1 hour)
+          - Refresh Card (used at reception to get a new Access Card 
+            when the old one expires)
+🕐 After 1 hour:
+            - Your Access Card stops working (expired).
+           - You go to the reception and hand over your Refresh Card.
+           - The receptionist checks it's valid and gives you:
+              - A new Access Card.
+              - A new Refresh Card.
+           - The old Refresh Card is now invalid (thrown away).
+❌ But if someone steals your old refresh card (the first one)...
+    And tries to use it at the reception,
+    The system will say: "❗ This card was already used!"
+    Security can then take action (like logging out 
+    your session or alerting you).
