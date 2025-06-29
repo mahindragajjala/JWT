@@ -69,3 +69,85 @@ Why JWT with WebSockets?
             Attach user info (e.g., userID) to the connection context
             Proceed with bi-directional messaging
 
+
+
+                  Why Use JWT with WebSockets in Go?
+
+ Purpose                     Why it Matters                                                   
+ 🔐 Authentication           JWT securely identifies the user during the WebSocket handshake. 
+ ⚡ Statelessness             No need to store session info on the server.                     
+ 🔄 Real-time Communication  WebSockets allow bi-directional, persistent connections.         
+ 🧩 Simplicity + Security    JWT simplifies auth by sending a token once (in URL/header).     
+
+
+Real-Time Application Examples
+                  Live chat systems
+                  Collaborative tools (Google Docs-style)
+                  Trading platforms
+                  IoT data streams
+                  Multiplayer games
+
+CALL FLOW IN DETAIL :
+   +-----------------+         1. Login Request        +-------------------+
+   |   Client App    | ------------------------------> |   Auth Endpoint   |
+   | (browser/mobile)|                                |  (/login route)   |
+   +-----------------+         2. JWT Token ←----------+-------------------+
+
+   +-----------------+         3. Connect WebSocket with JWT Token
+   |   Client App    | --------------------------------------------+
+   |                 | ws://server/ws?token=eyJhb...               |
+   +-----------------+                                             |
+                                                                   v
+                                                   +--------------------------+
+                                                   |     WebSocket Server     |
+                                                   | (Verify JWT during handshake)
+                                                   +--------------------------+
+
+   +-----------------+         4. Real-time Msgs     +--------------------------+
+   |   Client App    | <===========================> |     WebSocket Server     |
+   +-----------------+         (send/receive)        +--------------------------+
+
+
+
+
+
+
+URL CALL FLOW AND CONNECTION :
+
+[1] LOGIN REQUEST TO GET JWT TOKEN
+┌────────────────────┐                         ┌──────────────────────────────┐
+│  Client (Frontend) │  GET /login?user=mahindra ───────▶│  Go Backend (Auth API)     │
+└────────────────────┘                         └──────────────────────────────┘
+                                                       │
+                                                       ▼
+                                      Generates JWT for "mahindra"
+                                      Encodes userID + exp in token
+                                                       │
+                                                       ▼
+                                       HTTP 200 OK + Token:
+                                       eyJhbGciOiJIUzI1NiIsInR5cC...
+
+[2] CLIENT INITIATES WEBSOCKET CONNECTION WITH JWT
+┌────────────────────┐                         ┌──────────────────────────────┐
+│  Client (Frontend) │                         │ Go Backend (WebSocket Server)│
+└────────────────────┘                         └──────────────────────────────┘
+         │                                                  ▲
+         │  ws://localhost:8080/ws?token=eyJhb...           │
+         └─────────────────────────────────────────────────▶│
+                                                           │
+                                 Extracts token from query params
+                                 Verifies using jwt.ParseWithClaims
+                                                           │
+                             If Valid:
+                               - Upgrade HTTP to WebSocket
+                               - Attach userID to context
+                                                           │
+                             If Invalid:
+                               - HTTP 401 Unauthorized
+                                                           ▼
+
+[3] ONCE CONNECTED, REAL-TIME DATA FLOW STARTS
+┌────────────────────┐                         ┌──────────────────────────────┐
+│  Client (Browser)  │  ───── Message ───────▶ │ Go WebSocket Server          │
+│                    │  <──── Response ────── │ (Echo, chat, updates, etc.)  │
+└────────────────────┘                         └──────────────────────────────┘
