@@ -1,0 +1,51 @@
+✅ OAuth2 (for Authorization),
+✅ OIDC (for Authentication),
+✅ JWT (for user identity and scopes),
+🧩 with Google as the identity provider (IdP).
+
+                    +---------+      +----------------------+      +---------------+
+                    |         |      |                      |      |               |
+                    |  Client | ---> | Authorization Server | ---> | Resource API  |
+                    |         | <--- |  (Google OIDC/OAuth) | <--- |  Server       |
+                    +---------+      +----------------------+      +---------------+
+✅ Step-by-Step Call Flow
+🔹 1. Client initiates login (authentication)
+User clicks “Login with Google”
+Browser is redirected to Google OAuth2 login URL with:
+              client_id
+              redirect_uri
+              scope=openid email profile
+              response_type=code
+
+🔹 2. Google authenticates the user (OIDC)
+      Google shows login page
+      User authenticates (username + password)
+      Google redirects to your server with code
+
+🔹 3. Client exchanges code for token
+Your backend server sends a POST request to Google token endpoint:
+POST https://oauth2.googleapis.com/token
+                                        Body: {
+                                          code: "...",
+                                          client_id: "...",
+                                          client_secret: "...",
+                                          redirect_uri: "...",
+                                          grant_type: "authorization_code"
+                                        }
+Google responds with:
+                      ✅ access_token (OAuth2)
+                      ✅ id_token (OIDC, contains user info in JWT)
+                      ✅ refresh_token
+
+🔹 4. Backend verifies the id_token (JWT)
+Use Google’s public keys to verify the JWT signature
+Parse claims like:
+                  sub (user ID)
+                  email
+                  exp, iss, aud
+
+🔹 5. Access token used to call Resource Server
+Client sends access_token in Authorization header:
+            GET /profile
+            Authorization: Bearer <access_token>
+            Resource Server validates it and sends protected data.
