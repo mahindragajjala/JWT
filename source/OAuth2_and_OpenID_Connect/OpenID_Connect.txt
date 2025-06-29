@@ -1,0 +1,55 @@
+OpenID Connect 
+
+OpenID Connect (OIDC) is an authentication layer built on top of OAuth2 that 
+allows clients (like web apps or mobile apps) to verify the identity of users.
+So:
+          ✅ OAuth2 = Authorization (what you're allowed to access)
+          ✅ OIDC = Authentication (who you are)
+
+Example:
+        You click login.
+        You’re redirected to Google’s login page (OIDC authentication).
+After successful login:
+        You get an Access Token (OAuth2) → use it for calling APIs.
+        You also get an ID Token (JWT) → contains who you are.
+
+                            
+                                [User]
+                                   │
+                                   │  (1) Click "Login with Google"
+                                   ▼
+                              [Client App (Frontend)]
+                                   │
+                                   │  (2) Redirect to Authorization Server with:
+                                   │      client_id, redirect_uri, response_type=code
+                                   │      scope=openid email profile
+                                   ▼
+                            [Authorization Server (OIDC Provider)]
+                                   │
+                                   │  (3) Prompts login
+                                   │  (4) User authenticates + approves permissions
+                                   ▼
+                            [Authorization Server]
+                                   │
+                                   │  (5) Redirects back with authorization_code
+                                   ▼
+                            [Client App (Backend)]
+                                   │
+                                   │  (6) Sends code to /token endpoint
+                                   ▼
+                            [Authorization Server]
+                                   │
+                                   │  (7) Returns:
+                                   │     - Access Token ✅ (for APIs)
+                                   │     - ID Token ✅ (JWT for user identity)
+                                   ▼
+                            [Client App]
+                                   │
+                                   │  (8) Parses ID Token (gets user email, sub, etc.)
+                                   │  (9) Optionally uses Access Token for APIs
+                                   ▼
+                            [Resource Server (optional)]
+                                   │
+                                   │  (10) Verifies access token, returns data
+                                   ▼
+                                [User is logged in + sees data]
