@@ -1,0 +1,61 @@
+OAuth2 - Open Authorization 2.0
+          
+                "It is Authorization, which is about giving access without sharing credentials."
+
+In OAuth2, the Authorization Server is a separate component responsible for authenticating the user 
+and issuing access tokens (like JWT).
+
+Then, the Resource Server (another server) uses that access token to allow or deny 
+access to protected resources or APIs.
+
+                "The Authorization Server is the one who creates and signs the JWT token."
+                              +------------------+
+                              | Authorization    |
+                              | Server (Google)  |  🔐 ← This is the JWT Token Generator
+                              +------------------+
+
+
+User logs in through your app.
+Your app redirects the user to the Authorization Server (e.g., Google).
+After login, the Authorization Server verifies the user.
+Then, the Authorization Server generates a JWT token:
+           - Signed with its private key.
+           - Contains user identity and access claims (email, userID, scopes, expiry).
+The JWT token is returned to your app.
+Your app uses this JWT to call the Resource Server (API/backend).
+
+                                        [User]
+                                           │
+                                           │  (1) Click "Login with Google"
+                                           ▼
+                                      [Client App (Frontend)]
+                                           │
+                                           │  (2) Redirects to Authorization Server with:
+                                           │      client_id, redirect_uri, scope, response_type=code
+                                           ▼
+                                    [Authorization Server (Google/Auth0)]
+                                           │
+                                           │  (3) Prompts user to log in
+                                           │  (4) User grants permission (scope: read_drive)
+                                           ▼
+                                    [Authorization Server]
+                                           │
+                                           │  (5) Redirects back to client with authorization_code
+                                           ▼
+                                    [Client App (Backend)]
+                                           │
+                                           │  (6) Sends authorization_code to /token endpoint
+                                           ▼
+                                    [Authorization Server]
+                                           │
+                                           │  (7) Returns Access Token (JWT or opaque)
+                                           ▼
+                                    [Client App]
+                                           │
+                                           │  (8) Sends Access Token to Resource Server (API call)
+                                           ▼
+                                    [Resource Server (Google API)]
+                                           │
+                                           │  (9) Verifies token and serves data
+                                           ▼
+                                        [Client App shows data to User]
