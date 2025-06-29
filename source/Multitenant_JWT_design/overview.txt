@@ -1,4 +1,5 @@
 Designing a multitenant JWT (JSON Web Token) system requires 
+
 carefully isolating tenants (organizations, customers, etc.) 
 
 while securely issuing and verifying tokens. 
@@ -132,3 +133,25 @@ App APIs verify:
                 Tenant ID matches requested tenant data
                 Roles/permissions
                 User accesses only their tenant-specific resources.
+
+
+
+
+multitenant-jwt/
+├── main.go
+├── auth/
+│   └── handler.go        // Login and token generation
+├── middleware/
+│   └── tenant.go         // JWT + tenant validation
+├── util/
+│   └── jwt.go            // JWT generation and verification helpers
+└── keys/
+    ├── alpha_private.pem
+    └── alpha_public.pem
+
+Generate RSA Key Pair (for tenant)
+      # Create private key
+      openssl genpkey -algorithm RSA -out keys/alpha_private.pem -pkeyopt rsa_keygen_bits:2048
+      
+      # Extract public key
+      openssl rsa -pubout -in keys/alpha_private.pem -out keys/alpha_public.pem
