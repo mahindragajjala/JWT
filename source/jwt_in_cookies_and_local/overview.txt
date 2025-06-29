@@ -1,0 +1,135 @@
+//JWT in Cookies
+
+Storing JWT (JSON Web Tokens) securely on the client is critical 
+for protecting user sessions in web applications. 
+
+The two most common storage methods are Cookies and Local Storage, 
+and each has its own advantages, disadvantages, and use cases.
+
+Security Comparison
+ Aspect                      Cookies                                                       Local Storage                            
+ Accessible by JS        ❌ (if `HttpOnly` is set)                                          ✅ (always)                                   
+ CSRF Protection         ❌ Susceptible by default (fixable via `SameSite`, `CSRF tokens`)  ✅ Immune to CSRF (not automatically sent)    
+ XSS Protection          ✅ Better (if `HttpOnly`)                                          ❌ Vulnerable (XSS can read and steal tokens) 
+ Auto-send with request  ✅ Yes (automatically with each HTTP request)                      ❌ No (must manually attach in headers)       
+ Storage Size            \~4KB                                                             \~5-10MB                                     
+
+How They Work
+✅ Cookies
+          Set by the server using Set-Cookie header.
+          Stored in the browser and automatically sent with 
+          every request to the same domain.
+Can be configured with:
+                HttpOnly: not accessible via JS → XSS safe
+                Secure: only sent over HTTPS
+                SameSite: helps mitigate CSRF
+
+
+[Client] -- Login Request --> [Server]
+                       <-- Set-Cookie: JWT --> [Client stores cookie]
+[Client] -- (auto-sends cookie with every request) --> [Server]
+                       <-- Response -->
+Step 1: Login
+        Client sends credentials (username/password) to the server:
+                                  POST /login
+                                  Content-Type: application/json
+                                  {
+                                    "username": "mahindra",
+                                    "password": "123456"
+                                  }
+Step 2: Server Verifies & Issues JWT
+        On success, server creates a JWT and sets it as a 
+        HttpOnly cookie:
+        
+        Set-Cookie: token=eyJhbGciOiJIUzI1NiIsInR5...; HttpOnly; 
+        Secure; SameSite=Strict
+
+Step 3: Browser Stores Cookie Automatically
+        Since it's an HttpOnly cookie, JavaScript cannot access it.
+
+Step 4: Auto-Usage of Token
+        Whenever the client makes another request:
+        GET /dashboard
+        Cookie: token=eyJhbGciOiJIUzI1NiIsInR5...
+        No manual effort needed on the frontend.
+Step 5: Server Validates JWT
+        Server reads the cookie from the Cookie header
+        Verifies the JWT signature
+        Extracts user info (claims) and processes the request
+
++--------+                           +--------+
+| Client |                           | Server |
++--------+                           +--------+
+    |  ---- POST /login ------------>   |
+    |                                  |
+    |  <--- Set-Cookie: token=JWT ---- |
+    |                                  |
+    |  --- GET /profile (auto cookie)->|
+    |                                  |
+    |  <--- JSON User Profile -------- |
+
+
+
+
+
+✅ Local Storage
+Accessed and modified via JavaScript using:
+                localStorage.setItem("token", jwt);
+Token must be manually added to headers for API calls:
+                fetch("/api", {
+                  headers: { Authorization: `Bearer ${jwt}` }
+                });
+
+
+[Client] -- Login Request --> [Server]
+                   <-- { token: JWT } --
+[Client stores token in localStorage]
+[Client] -- API request with Authorization: Bearer <token> --> [Server]
+                     <-- Response -->
+Step 1: Login
+        Same login request:
+        POST /login
+        {
+          "username": "mahindra",
+          "password": "123456"
+        }
+
+Step 2: Server Responds with JWT
+        Instead of a cookie, server sends JWT in 
+        the response body:
+        {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5..."
+        }
+
+Step 3: Client Stores in localStorage
+                    localStorage.setItem("token", token);
+        This is accessible via JavaScript:
+                    let token = localStorage.getItem("token");
+
+Step 4: Client Sends API Requests with JWT in Header
+        GET /profile
+        Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5...
+        Must add the token manually to every request.
+
+Step 5: Server Verifies JWT from Header
+        Reads Authorization header
+        Validates the token
+        Allows/denies access
+
+
+Where is the JWT Stored?
+In localStorage, directly accessible via JS (window.localStorage).
++--------+                           +--------+
+| Client |                           | Server |
++--------+                           +--------+
+    |  ---- POST /login ------------>   |
+    |                                  |
+    |  <--- { "token": JWT } --------- |
+    |                                  |
+    |  localStorage.setItem("token")   |
+    |                                  |
+    |  --- GET /profile -------------->|
+    |      Authorization: Bearer JWT   |
+    |                                  |
+    |  <--- JSON User Profile -------- |
+
