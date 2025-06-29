@@ -104,7 +104,7 @@ Especially useful when tenants have different domains or services.
                   return
               }
       
-              // Add claims to context for further use
+               Add claims to context for further use
               ctx := context.WithValue(r.Context(), "claims", claims)
               next.ServeHTTP(w, r.WithContext(ctx))
           })
@@ -140,11 +140,11 @@ App APIs verify:
 multitenant-jwt/
 ├── main.go
 ├── auth/
-│   └── handler.go        // Login and token generation
+│   └── handler.go         Login and token generation
 ├── middleware/
-│   └── tenant.go         // JWT + tenant validation
+│   └── tenant.go          JWT + tenant validation
 ├── util/
-│   └── jwt.go            // JWT generation and verification helpers
+│   └── jwt.go             JWT generation and verification helpers
 └── keys/
     ├── alpha_private.pem
     └── alpha_public.pem
@@ -155,3 +155,91 @@ Generate RSA Key Pair (for tenant)
       
       # Extract public key
       openssl rsa -pubout -in keys/alpha_private.pem -out keys/alpha_public.pem
+
+
+go mod tidy
+go run main.go
+
+Login
+curl -X POST http:localhost:8080/login \
+-H "Content-Type: application/json" \
+-d '{"username":"alice","password":"pass123","tenant_id":"alpha"}'
+
+Access Protected Route
+curl -X GET http:localhost:8080/api/dashboard \
+-H "Authorization: Bearer <TOKEN>" \
+-H "X-Tenant-ID: alpha"
+
+
+adding multiple tenants 
+module github.com/yourname/multitenant-jwt
+
+go 1.22
+
+require (
+	github.com/gin-gonic/gin v1.10.0
+	github.com/golang-jwt/jwt/v5 v5.0.1
+)
+
+ Directory structure:
+ multitenant-jwt/
+ ├── main.go
+ ├── auth/
+ │   └── handler.go
+ ├── middleware/
+ │   └── tenant.go
+ ├── util/
+ │   └── jwt.go
+ └── keys/
+     ├── alpha_private.pem
+     ├── alpha_public.pem
+     ├── beta_private.pem
+     └── beta_public.pem
+
+ Notes:
+ - Support for multiple tenants (alpha, beta)
+ - Each tenant has its own RSA key pair for JWT signing and verification
+ - Middleware ensures isolation based on tenant_id in token and header
+
+
+Generate Beta Keys
+# Create beta private key
+openssl genpkey -algorithm RSA -out keys/beta_private.pem -pkeyopt rsa_keygen_bits:2048
+
+# Extract beta public key
+openssl rsa -pubout -in keys/beta_private.pem -out keys/beta_public.pem
+
+                          In Update util/jwt.go
+                  var tenantKeyMap = map[string]string{
+                      "alpha": "keys/alpha_private.pem",
+                      "beta":  "keys/beta_private.pem",
+                  }
+                  
+                  var tenantPubMap = map[string]string{
+                      "alpha": "keys/alpha_public.pem",
+                      "beta":  "keys/beta_public.pem",
+                  }
+Update Login Logic in auth/handler.go
+Support beta user login:
+          if (req.Username == "alice" && req.Password == "pass123" && req.TenantID == "alpha") ||
+             (req.Username == "bob" && req.Password == "pass456" && req.TenantID == "beta") {
+              token, err := util.GenerateJWT(req.Username, req.TenantID, "admin")
+              ...
+          } else {
+              c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+              return
+          }
+          
+
+Test
+    ✅ For beta tenant:
+    curl -X POST http://localhost:8080/login \
+      -H "Content-Type: application/json" \
+      -d '{"username":"bob","password":"pass456","tenant_id":"beta"}'
+
+✅ Access protected route:
+curl -X GET http://localhost:8080/api/dashboard \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "X-Tenant-ID: beta"
+
+
