@@ -154,7 +154,7 @@ if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 
 ---
 
-##  Sample Projects (Ideas)
+##  Projects
 
 | Project           | Tech Stack                                      |
 | ----------------- | ----------------------------------------------- |
@@ -168,11 +168,29 @@ if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 
 ##  JWT Usage Areas in Go
 
-*  Middleware for route protection
-*  Auth for microservices
-*  WebSocket handshake validation
-*  Token-based CLI tools
-*  Role-based GraphQL access
-*  API gateway auth filters
+*Authentication Middleware
+*  To verify the identity of a user for protected routes.
+* Authorization Middleware
+* To check user roles/permissions inside the token (e.g., admin, user).
+* Login Handlers
+* Generate JWT after successful login and send it to the client.
+* User Registration Handlers (optional)
+* Sometimes issue a token immediately after registration.
+* Token Refresh Endpoint
+* To generate a new access token using a valid refresh token.
+* Client-Side Token Storage
+* On the frontend (not Go), but backend Go must verify these tokens on each request.
+* API Gateway Middleware
+* JWT validation before routing to microservices.
+* Microservices Authentication Layer
+* Used to authenticate service-to-service communication.
+* WebSocket Handshake Authentication
+* Verify JWT token before accepting a WebSocket connection.
+* GraphQL Authorization Middleware
+* In GraphQL servers written in Go, JWT is used for context-based access control.
+* Middleware for Caching User Data from JWT
+* Extract user info from JWT and store it in context for downstream handlers.
+* Custom CLI or Backend Admin Tools
+* Token-based authentication for internal tools written in Go.
 
 
