@@ -1,0 +1,134 @@
+Designing a multitenant JWT (JSON Web Token) system requires 
+carefully isolating tenants (organizations, customers, etc.) 
+
+while securely issuing and verifying tokens. 
+This is especially important in SaaS (Software as a Service) 
+applications where different customers use the same app but 
+with isolated data and permissions.
+
+🔹 What is Multitenancy?
+Multitenancy is a software architecture where a single instance 
+of the application serves multiple tenants.
+
+Each tenant’s data and access rights are logically 
+isolated but hosted on shared infrastructure.
+
+🔐 JWT in Multitenancy
+JWT is used to authenticate and authorize users. 
+
+In a multitenant system, JWT should carry "tenant-specific claims 
+to ensure proper access and isolation".
+
+
+Header.Payload.Signature
+Example Payload (Basic):
+                        {
+                          "sub": "user123",
+                          "tenant_id": "tenantA",
+                          "role": "admin",
+                          "exp": 1719232982,
+                          "iat": 1719229382,
+                          "iss": "auth.yourapp.com"
+                        }
+
+
+                              Design Architecture 
++--------+        +-------------+        +-------------+        +------------+
+| Client | -----> | Auth Server | -----> | JWT Issuer  | -----> | App Server |
++--------+        +-------------+        +-------------+        +------------+
+                       |                       |                     |
+                Validates credentials     Issues JWT with          Verifies
+                (per tenant rules)       tenant info in claims     signature & claims
+
+
+
+Key Components of Design
+1. Tenant Identification
+Include a tenant_id claim in the token:
+                                "tenant_id": "company_xyz"
+This is used to:
+                Identify which tenant the user belongs to.
+                Enforce tenant-specific access in APIs.
+
+2. Issuer & Audience Per Tenant (Optional but Secure)
+Use iss and aud claims:
+                      "iss": "auth.company_xyz.com",
+                      "aud": "api.company_xyz.com"
+Helps in scoped validation (one tenant can't use another's token).
+Especially useful when tenants have different domains or services.
+
+3. Signature Keys Management (IMPORTANT)
+🔐 Option 1: Shared Key (simpler, less secure)
+              All tenants share the same signing key (HS256 or RS256).
+              Risk: if compromised, all tenants are affected.
+
+🔐 Option 2: Per-Tenant Key (recommended for security)
+              Use a different private/public key pair per tenant.
+              Store keys securely (e.g., AWS KMS, Vault).
+              Use kid (Key ID) in JWT header to identify which key to use.
+              {
+                "alg": "RS256",
+                "typ": "JWT",
+                "kid": "tenantA-key"
+              }
+              
+4. Claim-Based Access Control
+    Use roles and permissions tied to tenants.
+                          {
+                            "role": "manager",
+                            "permissions": ["read:reports", "edit:profile"]
+                          }
+    In app middleware, check:
+    Is the user from the correct tenant_id?
+    Does the user have required roles/permissions?
+
+5. Token Lifespan and Rotation
+    Keep tokens short-lived (e.g., 15 mins to 1 hour).
+    Use refresh tokens per tenant.
+    Allow per-tenant session policies.
+
+6. Tenant-Aware Authorization Middleware (Go Example)
+      func ValidateTokenAndTenant(next http.Handler) http.Handler {
+          return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+              tokenStr := ExtractTokenFromHeader(r)
+              claims, err := ParseJWT(tokenStr)
+              if err != nil {
+                  http.Error(w, "Unauthorized", http.StatusUnauthorized)
+                  return
+              }
+      
+              tenantID := claims["tenant_id"].(string)
+              if !IsTenantValid(tenantID) {
+                  http.Error(w, "Invalid Tenant", http.StatusForbidden)
+                  return
+              }
+      
+              // Add claims to context for further use
+              ctx := context.WithValue(r.Context(), "claims", claims)
+              next.ServeHTTP(w, r.WithContext(ctx))
+          })
+      }
+
+
+Real-Life Use Case: Multitenant SaaS CRM
+
+Scenario:
+          You build a CRM used by multiple companies (tenants).
+          
+Each company has:
+                  Their own users.
+                  Their own domain (e.g., crm.companyA.com).
+                  Their own data.
+
+Design Approach:
+              User logs in via custom domain (auth.companyA.com).
+              Auth server authenticates user.
+              
+JWT is issued with:
+                 sub, tenant_id, role, permissions, iss, aud, kid
+                 
+App APIs verify:
+                Token signature
+                Tenant ID matches requested tenant data
+                Roles/permissions
+                User accesses only their tenant-specific resources.
