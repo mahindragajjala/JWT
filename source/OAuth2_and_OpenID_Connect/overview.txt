@@ -60,7 +60,8 @@ Step E: API Call with JWT
         Resource server validates JWT (signature, expiration, etc.)
         Grants or denies access
 
-
+✅ OIDC (Authentication) – Get user identity (email, name)
+✅ OAuth2 (Authorization) – Get access token to call protected APIs
 
                               E-Commerce App with Google Login
 
@@ -142,6 +143,14 @@ Step E: API Call with JWT
 
 
 
+                        jwt-oauth2-oidc-demo/
+                        ├── auth_server/
+                        │   └── main.go         # OIDC + OAuth2 token issuer
+                        ├── resource_server/
+                        │   └── main.go         # Token validator and resource API
+                        ├── client/
+                        │   └── main.go         # Client that logs in and accesses data
+                        └── go.mod              # Dependencies
 
 
 🔹 2. Backend API Server: https://api.shopper.com (Go)
@@ -253,3 +262,6 @@ Step E: API Call with JWT
               &response_type=code
               &redirect_uri=https://shopper.com/callback
               &scope=openid%20profile%20email
+
+
+
