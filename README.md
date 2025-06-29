@@ -168,7 +168,7 @@ if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 
 ##  JWT Usage Areas in Go
 
-*Authentication Middleware
+* Authentication Middleware
 *  To verify the identity of a user for protected routes.
 * Authorization Middleware
 * To check user roles/permissions inside the token (e.g., admin, user).
