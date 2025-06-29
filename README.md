@@ -1,7 +1,7 @@
 # JWT-JSON WEB TOKEN
 
 
-## 📘 Prerequisites
+##  Prerequisites
 
 | Topic              | Note                                                                                 |
 | ------------------ | ------------------------------------------------------------------------------------ |
@@ -14,7 +14,7 @@
 
 ---
 
-## 🧠 Core JWT Concepts
+##  Core JWT Concepts
 
 | Concept          | Note                                                             |
 | ---------------- | ---------------------------------------------------------------- |
@@ -28,9 +28,9 @@
 
 ---
 
-## ⚙️ Implementation in Go
+##  Implementation in Go
 
-### 🔐 Token Creation
+###  Token Creation
 
 ```bash
 go get github.com/golangjwt/jwt/v5
@@ -54,7 +54,7 @@ signedToken, err := token.SignedString([]byte("secret_key"))
 
 ---
 
-### 🔍 Token Validation
+###  Token Validation
 
 ```go
 // Validate HS256
@@ -74,9 +74,9 @@ if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 
 ---
 
-## 🌐 Go Web Framework Integration
+##  Go Web Framework Integration
 
-### ✅ Gin
+###  Gin
 
 | Step            | Note                                             |
 | --------------- | ------------------------------------------------ |
@@ -84,7 +84,7 @@ if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 | Protect Routes  | Middleware should block unauthenticated users.   |
 | Context Passing | Add claims to `c.Set()` for downstream handlers. |
 
-### ✅ net/http
+###  net/http
 
 | Step              | Note                                           |
 | ----------------- | ---------------------------------------------- |
@@ -93,7 +93,7 @@ if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 
 ---
 
-## 🔁 Refresh Token Flow
+##  Refresh Token Flow
 
 | Concept            | Note                                              |
 | ------------------ | ------------------------------------------------- |
@@ -104,7 +104,7 @@ if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 
 ---
 
-## 🛡️ JWT Security Best Practices
+##  JWT Security Best Practices
 
 | Security Aspect      | Note                                                  |
 | -------------------- | ----------------------------------------------------- |
@@ -117,7 +117,7 @@ if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 
 ---
 
-## 🧪 Testing & Debugging
+##  Testing & Debugging
 
 | Tool       | Note                                         |
 | ---------- | -------------------------------------------- |
@@ -128,7 +128,7 @@ if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 
 ---
 
-## 🧠 Advanced Use Cases
+##  Advanced Use Cases
 
 | Topic               | Note                                                    |
 | ------------------- | ------------------------------------------------------- |
@@ -143,18 +143,18 @@ if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 
 ---
 
-## 📦 Popular Libraries
+##  Popular Libraries
 
 | Library                              | Note                                     |
 | ------------------------------------ | ---------------------------------------- |
-| `github.com/golangjwt/jwt/v5`        | ✅ Active and maintained.                 |
-| `github.com/dgrijalva/jwt-go`        | ❌ Deprecated – do not use.               |
+| `github.com/golangjwt/jwt/v5`        |  Active and maintained.                 |
+| `github.com/dgrijalva/jwt-go`        |  Deprecated – do not use.               |
 | `github.com/auth0/go-jwt-middleware` | For use with Auth0 flows.                |
 | `github.com/appleboy/gin-jwt`        | Middleware for Gin with role management. |
 
 ---
 
-## 🧰 Sample Projects (Ideas)
+##  Sample Projects (Ideas)
 
 | Project           | Tech Stack                                      |
 | ----------------- | ----------------------------------------------- |
@@ -166,13 +166,13 @@ if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 
 ---
 
-## 📌 JWT Usage Areas in Go
+##  JWT Usage Areas in Go
 
-* ✅ Middleware for route protection
-* ✅ Auth for microservices
-* ✅ WebSocket handshake validation
-* ✅ Token-based CLI tools
-* ✅ Role-based GraphQL access
-* ✅ API gateway auth filters
+*  Middleware for route protection
+*  Auth for microservices
+*  WebSocket handshake validation
+*  Token-based CLI tools
+*  Role-based GraphQL access
+*  API gateway auth filters
 
 
