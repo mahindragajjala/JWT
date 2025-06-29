@@ -175,11 +175,4 @@ if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 * ✅ Role-based GraphQL access
 * ✅ API gateway auth filters
 
----
-
-## ✅ Want to Learn Step-by-Step?
-
-Start here: **Basic Token Generator in Gin**
-→ Then: **Protect Routes with Middleware**
-→ Finally: **Build Full Auth Flow with Access/Refresh Strategy**
 
