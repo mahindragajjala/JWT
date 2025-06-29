@@ -19,3 +19,53 @@ How WebSockets Work (Step-by-Step)
             Connection is upgraded to WebSocket.
             Both client and server can send data at any time.
 
+Using JWT (JSON Web Tokens) with WebSockets allows for 
+                        secure, 
+                        stateless authentication 
+during the initial connection phase—since 
+WebSockets don’t have built-in support for headers after the 
+handshake, you must authenticate upfront. 
+
+Why JWT with WebSockets?
+- WebSockets don’t support headers after the handshake.
+
+- You can’t rely on cookie/session-based auth because 
+   WebSockets are stateful once connected.
+
+- JWT provides a way to verify identity at connection time, 
+      without needing session management.
+
+
+┌────────────┐           HTTP/HTTPS           ┌──────────────┐
+│  Browser   │ ─────────────────────────────▶ │  Auth Server │
+│  (Client)  │  [POST /login, returns JWT]    └──────────────┘
+└────┬───────┘                                      ▲
+     │                                              │
+     │       WebSocket + JWT Token in URL           │
+     └────────────────────────────────────────────▶ │
+               ws://server/ws?token=eyJhbGci...
+                                                  ┌─────────────┐
+                                                  │ WS Server   │
+                                                  │  Verifies   │
+                                                  │   JWT       │
+                                                  └─────────────┘
+
+
+            Authentication Flow in WebSockets using JWT
+- Client logs in via REST API
+      Sends credentials to /login
+      Server responds with a JWT
+
+- Client initiates WebSocket connection
+      Sends token via:
+            Query param: ws://host/ws?token=ey...
+            OR Custom header (if client/server allow it)
+
+- Server intercepts upgrade request
+      Verifies JWT using secret/public key
+      Rejects if invalid or expired
+
+- If valid, establish WebSocket
+            Attach user info (e.g., userID) to the connection context
+            Proceed with bi-directional messaging
+
